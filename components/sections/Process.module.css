@@ -78,34 +78,42 @@
   font-variant-numeric: tabular-nums;
 }
 
-.wordMask {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.06em;
-  margin-bottom: -0.06em;
-}
-
-.word {
-  display: flex;
+/* Two layers stacked in one box. Deliberately no overflow, mask or clip on
+   this stage — the transition is carried entirely by the width axis, tracking
+   and opacity, so there is nothing that can crop a letterform. */
+.wordStage {
+  position: relative;
   font-family: var(--f-display);
   font-weight: 700;
   font-size: clamp(2.75rem, 12vw, 11rem);
   line-height: 0.88;
-  letter-spacing: -0.055em;
+  height: 0.88em;
   text-transform: uppercase;
+}
+
+.wordLayer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  white-space: nowrap;
+  line-height: 0.88;
   font-stretch: 100%;
-  will-change: font-stretch;
+  letter-spacing: -0.055em;
+  will-change: font-stretch, letter-spacing, opacity;
 }
 
 .char {
   display: inline-block;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 .rule {
   height: 2px;
   background: var(--red);
-  transform: scaleX(0);
+  /* Rests at full width and compresses during a transition — it is the same
+     object throughout, never redrawn from zero. */
+  transform: scaleX(1);
   transform-origin: 0 50%;
   margin-top: clamp(0.6rem, 1.6vh, 1.1rem);
 }
@@ -116,7 +124,6 @@
   gap: 0.8em;
   margin-top: clamp(0.8rem, 2vh, 1.3rem);
   color: var(--fg-dim);
-  overflow: hidden;
   padding-bottom: 0.15em;
 }
 

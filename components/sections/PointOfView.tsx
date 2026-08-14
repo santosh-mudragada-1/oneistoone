@@ -22,6 +22,7 @@ export default function PointOfView() {
   const noteRef = useRef<HTMLSpanElement>(null);
   const colonRef = useRef<HTMLSpanElement>(null);
   const indexRef = useRef(0);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
   const [active, setActive] = useState(0);
 
   useGsap(
@@ -55,39 +56,60 @@ export default function PointOfView() {
 
           if (!motion) return;
 
-          /* Pairs swap on discrete scroll steps — crisp cuts rather than a
-             mushy scrub, so each mapping is legible for a moment. */
+          /* One continuous compression and release. The width axis and
+             tracking travel through the whole event, and the words are
+             exchanged at the pinch — where opacity is already zero — so the
+             pair reads as one object reshaping rather than two words cutting.
+             The colon is the pivot and never leaves. */
           const swap = (next: number) => {
             const dir = next > indexRef.current ? 1 : -1;
             indexRef.current = next;
             setActive(next);
             const p = PAIRS[next];
-            const nodes = [aRef.current, bRef.current, noteRef.current];
+            const words = [aRef.current, bRef.current];
+            const axis = { wdth: 100, track: -5 };
 
-            gsap
-              .timeline()
-              .to(nodes, {
-                yPercent: -118 * dir,
-                duration: 0.42,
-                ease: 'power3.in',
-                stagger: 0.04,
-              })
+            const apply = () => {
+              words.forEach((el) => {
+                if (!el) return;
+                el.style.fontStretch = `${axis.wdth}%`;
+                el.style.letterSpacing = `${axis.track / 100}em`;
+              });
+            };
+
+            tlRef.current?.kill();
+            const tl = gsap.timeline();
+            tlRef.current = tl;
+            const PINCH = 0.62;
+
+            tl.to(
+              axis,
+              { wdth: 58, track: -9.5, duration: PINCH, ease: 'power2.inOut', onUpdate: apply },
+              0
+            )
+              .to(words, { opacity: 0, duration: 0.5, ease: 'power2.in' }, 0.1)
+              .to(noteRef.current, { opacity: 0, y: -10 * dir, duration: 0.4, ease: 'power2.in' }, 0)
+              .to(colonRef.current, { scaleY: 0.4, duration: PINCH, ease: 'power2.inOut' }, 0)
+
               .add(() => {
                 if (aRef.current) aRef.current.textContent = p.a;
                 if (bRef.current) bRef.current.textContent = p.b;
                 if (noteRef.current) noteRef.current.textContent = p.note;
-              })
-              .fromTo(
-                nodes,
-                { yPercent: 118 * dir },
-                { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.06 }
-              );
+              }, PINCH)
 
-            gsap.fromTo(
-              colonRef.current,
-              { scaleY: 0.2, opacity: 0.4 },
-              { scaleY: 1, opacity: 1, duration: 0.8, ease: 'elastic.out(1, 0.55)' }
-            );
+              .to(
+                axis,
+                { wdth: 100, track: -5, duration: 1.2, ease: 'expo.out', onUpdate: apply },
+                PINCH
+              )
+              .to(words, { opacity: 1, duration: 0.8, ease: 'power2.out' }, PINCH + 0.02)
+              .to(colonRef.current, { scaleY: 1, duration: 1, ease: 'expo.out' }, PINCH)
+              .fromTo(
+                noteRef.current,
+                { opacity: 0, y: 12 * dir },
+                { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out' },
+                PINCH + 0.08
+              );
           };
 
           gsap.to(pinRef.current, {
@@ -95,7 +117,7 @@ export default function PointOfView() {
             scrollTrigger: {
               trigger: pinRef.current,
               start: 'top top',
-              end: `+=${PAIRS.length * 90}%`,
+              end: `+=${PAIRS.length * 100}%`,
               pin: true,
               pinSpacing: true,
               scrub: true,
@@ -106,6 +128,10 @@ export default function PointOfView() {
               },
             },
           });
+
+          return () => {
+            tlRef.current?.kill();
+          };
         }
       );
 

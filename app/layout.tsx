@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Archivo, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
+import { Archivo, Inter, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+
+/* The wordmark is set in Inter and nothing else uses it — keeping it on its
+   own face is what stops the logo drifting with the display type. */
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 /* Archivo carries a real wdth axis (62–125), so condensed and expanded
    settings are genuine widths rather than scaled distortions. */
@@ -44,7 +53,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${instrument.variable} ${mono.variable}`}>
+    <html
+      lang="en"
+      className={`${archivo.variable} ${inter.variable} ${instrument.variable} ${mono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { useGsap } from '@/lib/hooks';
-import ProcessDiagram from '../canvas/ProcessDiagram';
+import ProcessDiagram, { type DiagramDriver } from '../canvas/ProcessDiagram';
 import Marker from '../ui/Marker';
 import s from './Process.module.css';
 
@@ -16,29 +16,38 @@ const STAGES = [
   { word: 'Release', note: 'Ship it, then watch it.' },
 ];
 
+/* Width-axis and tracking values the word travels between. The outgoing word
+   narrows to these and the incoming word starts from them, so the eye follows
+   one continuous compression-and-release instead of a swap. */
+const NARROW = { wdth: 62, track: -0.095 };
+const OPEN = { wdth: 100, track: -0.055 };
+
 export default function Process() {
   const root = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
-  const wordRef = useRef<HTMLSpanElement>(null);
+  const layerA = useRef<HTMLSpanElement>(null);
+  const layerB = useRef<HTMLSpanElement>(null);
   const noteRef = useRef<HTMLSpanElement>(null);
   const ruleRef = useRef<HTMLDivElement>(null);
   const idxRef = useRef(0);
+  const frontRef = useRef(0);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const driver = useRef<DiagramDriver>({ trail: 1, dot: 1 });
   const [stage, setStage] = useState(0);
 
-  /**
-   * Reduced motion is handled by gsap.matchMedia and CSS, never by swapping
-   * React trees: ScrollTrigger's pin moves the pinned node into a spacer it
-   * creates itself, and re-rendering around that breaks reconciliation.
-   */
   useGsap(
     () => {
-      const word = wordRef.current;
-      if (!word) return;
+      const a = layerA.current;
+      const b = layerB.current;
+      if (!a || !b) return;
 
-      const width = { v: 100 };
+      const applyAxis = (el: HTMLElement, o: { wdth: number; track: number }) => {
+        el.style.fontStretch = `${o.wdth}%`;
+        el.style.letterSpacing = `${o.track}em`;
+      };
 
-      const paint = (text: string) => {
-        word.replaceChildren(
+      const paint = (el: HTMLElement, text: string) => {
+        el.replaceChildren(
           ...[...text].map((ch) => {
             const span = document.createElement('span');
             span.className = s.char;
@@ -46,11 +55,14 @@ export default function Process() {
             return span;
           })
         );
-        return Array.from(word.children) as HTMLElement[];
+        return Array.from(el.children) as HTMLElement[];
       };
 
-      // These nodes are written imperatively, so React must not own them.
-      paint(STAGES[0].word);
+      // Seeded imperatively — React must not own text GSAP rewrites.
+      paint(a, STAGES[0].word);
+      applyAxis(a, OPEN);
+      gsap.set(a, { opacity: 1 });
+      gsap.set(b, { opacity: 0 });
       if (noteRef.current) noteRef.current.textContent = STAGES[0].note;
 
       const mm = gsap.matchMedia();
@@ -61,46 +73,89 @@ export default function Process() {
           idxRef.current = next;
           setStage(next);
 
-          const outgoing = Array.from(word.children) as HTMLElement[];
+          const from = frontRef.current === 0 ? a : b;
+          const to = frontRef.current === 0 ? b : a;
+          frontRef.current = 1 - frontRef.current;
 
-          gsap
-            .timeline()
-            .to(outgoing, {
-              yPercent: -108 * dir,
-              duration: 0.34,
-              ease: 'power3.in',
-              stagger: 0.022,
-            })
-            .to(noteRef.current, { yPercent: -110, duration: 0.3, ease: 'power3.in' }, 0)
+          const inChars = paint(to, STAGES[next].word);
+          applyAxis(to, NARROW);
+          gsap.set(to, { opacity: 0 });
+          gsap.set(inChars, { opacity: 0, yPercent: 14 * dir });
+
+          const outChars = Array.from(from.children) as HTMLElement[];
+          const outAxis = { ...OPEN };
+          const inAxis = { ...NARROW };
+
+          tlRef.current?.kill();
+          const tl = gsap.timeline();
+          tlRef.current = tl;
+
+          /* --- the word compresses out ------------------------------------ */
+          tl.to(
+            outAxis,
+            {
+              wdth: NARROW.wdth,
+              track: NARROW.track,
+              duration: 0.85,
+              ease: 'power2.inOut',
+              onUpdate: () => applyAxis(from, outAxis),
+            },
+            0
+          )
+            .to(from, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 0.1)
+            .to(
+              outChars,
+              { yPercent: -14 * dir, duration: 0.8, ease: 'power2.in', stagger: 0.018 },
+              0
+            )
+
+            /* --- and opens back out as the next word ----------------------- */
+            .to(
+              inAxis,
+              {
+                wdth: OPEN.wdth,
+                track: OPEN.track,
+                duration: 1.25,
+                ease: 'expo.out',
+                onUpdate: () => applyAxis(to, inAxis),
+              },
+              0.32
+            )
+            .to(to, { opacity: 1, duration: 0.7, ease: 'power2.out' }, 0.32)
+            .to(
+              inChars,
+              { opacity: 1, yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.028 },
+              0.34
+            )
+
+            /* The rule breathes with the word — it never resets to zero. */
+            .to(ruleRef.current, { scaleX: 0.28, duration: 0.5, ease: 'power2.in' }, 0)
+            .to(ruleRef.current, { scaleX: 1, duration: 1, ease: 'expo.out' }, 0.5)
+
+            /* --- one line of copy ------------------------------------------ */
+            .to(noteRef.current, { opacity: 0, y: -8 * dir, duration: 0.35, ease: 'power2.in' }, 0)
             .add(() => {
-              const chars = paint(STAGES[next].word);
-              gsap.fromTo(
-                chars,
-                { yPercent: 108 * dir },
-                { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.035 }
-              );
               if (noteRef.current) noteRef.current.textContent = STAGES[next].note;
             })
-            // The stage arrives condensed and opens out along the width axis.
-            .fromTo(
-              width,
-              { v: 66 },
-              {
-                v: 100,
-                duration: 1.2,
-                ease: 'expo.out',
-                onUpdate: () => {
-                  word.style.fontStretch = `${width.v}%`;
-                },
-              },
-              '<'
-            )
-            .fromTo(ruleRef.current, { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'expo.out' }, '<')
             .fromTo(
               noteRef.current,
-              { yPercent: 110 },
-              { yPercent: 0, duration: 0.9, ease: 'expo.out' },
-              '<'
+              { opacity: 0, y: 10 * dir },
+              { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' },
+              0.55
+            )
+
+            /* --- trail travels, and only then does the dot arrive ---------- */
+            .fromTo(
+              driver.current,
+              { trail: 0 },
+              { trail: 1, duration: 0.9, ease: 'power2.inOut' },
+              0.15
+            )
+            .fromTo(
+              driver.current,
+              { dot: 0 },
+              { dot: 1, duration: 0.5, ease: 'back.out(2.2)' },
+              1.05
             );
         };
 
@@ -109,7 +164,8 @@ export default function Process() {
           scrollTrigger: {
             trigger: pinRef.current,
             start: 'top top',
-            end: `+=${STAGES.length * 62}%`,
+            // Generous dwell per stage so each one is read before it moves on.
+            end: `+=${STAGES.length * 78}%`,
             pin: true,
             scrub: true,
             invalidateOnRefresh: true,
@@ -119,6 +175,10 @@ export default function Process() {
             },
           },
         });
+
+        return () => {
+          tlRef.current?.kill();
+        };
       });
 
       return () => mm.revert();
@@ -148,7 +208,7 @@ export default function Process() {
             </span>
           </div>
           <div className={s.diagram}>
-            <ProcessDiagram stage={stage} />
+            <ProcessDiagram stage={stage} driver={driver} />
           </div>
         </div>
 
@@ -161,8 +221,11 @@ export default function Process() {
               <span className="faint">{String(STAGES.length).padStart(2, '0')}</span>
             </div>
 
-            <div className={s.wordMask}>
-              <span className={s.word} ref={wordRef} />
+            {/* Two layers, no mask. The transition is carried by the width
+                axis, tracking and opacity — nothing here may clip a glyph. */}
+            <div className={s.wordStage}>
+              <span className={s.wordLayer} ref={layerA} />
+              <span className={s.wordLayer} ref={layerB} />
             </div>
 
             <div className={s.rule} ref={ruleRef} />
@@ -190,8 +253,7 @@ export default function Process() {
         </div>
       </div>
 
-      {/* Shown by CSS only when motion is reduced — the pinned sequence above
-          never advances without scroll-driven animation. */}
+      {/* Shown by CSS only when motion is reduced. */}
       <ol className={s.staticList} aria-hidden="true">
         {STAGES.map((item, i) => (
           <li className={s.staticItem} key={item.word}>

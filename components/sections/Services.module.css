@@ -64,14 +64,22 @@
 .wordMask {
   display: block;
   overflow: hidden;
+  /* Compositional offset — this is where the list gets its rhythm now that
+     every discipline shares one type size. */
+  padding-left: var(--indent, 0%);
+  transition: padding-left 0.7s var(--e-expo);
+}
+
+.row[data-active='true'] .wordMask {
+  padding-left: 0%;
 }
 
 .word {
   display: block;
   font-family: var(--f-display);
   font-weight: 700;
-  /* Each discipline claims a different amount of the page. */
-  font-size: calc(var(--t-lg) * var(--scale, 1));
+  /* Single scale across the whole list. */
+  font-size: clamp(2.25rem, 6.2vw, 6rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   text-transform: uppercase;
@@ -194,9 +202,11 @@
   .head {
     justify-content: flex-start;
   }
-  /* Compress the scale differences rather than dropping them — the longest
-     word has to fit the measure, but the hierarchy still reads. */
   .word {
-    font-size: calc(clamp(1.5rem, 6.6vw, 2.6rem) * (0.6 + var(--scale, 1) * 0.4));
+    font-size: clamp(1.6rem, 7vw, 2.6rem);
+  }
+  /* Portrait has no room for the indent arc without crowding the measure. */
+  .wordMask {
+    padding-left: 0%;
   }
 }

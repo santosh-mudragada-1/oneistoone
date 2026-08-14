@@ -117,24 +117,19 @@
 .mark {
   display: flex;
   justify-content: center;
-  font-family: var(--f-display);
+  font-family: var(--f-logo);
   font-weight: 700;
   /* Sized to span the measure and be cropped by the page edge — the mark
      runs off the bottom of the document rather than sitting inside it. */
   font-size: min(48vw, 700px);
-  letter-spacing: -0.07em;
+  letter-spacing: -0.045em;
   line-height: 0.74;
-  color: var(--fg);
-  transition: color 0.6s var(--e-quart);
+  color: var(--white);
   will-change: transform;
 }
 
-.markWrap:hover .mark {
-  color: var(--white);
-}
-
 .markColon {
-  color: var(--red);
+  color: inherit;
 }
 
 @media (max-width: 860px) {

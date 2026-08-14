@@ -7,12 +7,15 @@ import ServiceSketch from '../canvas/ServiceSketch';
 import Marker from '../ui/Marker';
 import s from './Services.module.css';
 
+/* One type scale for every discipline — none of them outranks another. The
+   composition varies through `indent`, which steps the list out and back in a
+   deliberate arc, and through the hover interaction. */
 const SERVICES = [
-  { word: 'Brand', desc: 'Identity systems, naming, art direction', scale: 1 },
-  { word: 'Product', desc: 'Interfaces, design systems, prototypes', scale: 0.82 },
-  { word: 'Digital', desc: 'Sites, editorial, real-time graphics', scale: 1.16 },
-  { word: 'Motion', desc: 'Titles, loops, interaction choreography', scale: 0.76 },
-  { word: 'Experimental', desc: 'Research, tools, work with no brief yet', scale: 1.3 },
+  { word: 'Brand', desc: 'Identity systems, naming, art direction', indent: '0%' },
+  { word: 'Product', desc: 'Interfaces, design systems, prototypes', indent: '6%' },
+  { word: 'Digital', desc: 'Sites, editorial, real-time graphics', indent: '12%' },
+  { word: 'Motion', desc: 'Titles, loops, interaction choreography', indent: '6%' },
+  { word: 'Experimental', desc: 'Research, tools, work with no brief yet', indent: '0%' },
 ];
 
 export default function Services() {
@@ -107,7 +110,7 @@ export default function Services() {
             <button
               type="button"
               className={s.trigger}
-              style={{ '--scale': item.scale } as React.CSSProperties}
+              style={{ '--indent': item.indent } as React.CSSProperties}
               onPointerEnter={() => !coarse && open(i, false)}
               onFocus={() => open(i, true)}
               onBlur={() => setActive(null)}

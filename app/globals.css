@@ -27,6 +27,8 @@
 
   /* --- Type ------------------------------------------------------------- */
   --f-display: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Wordmark only. Never used for headlines or body. */
+  --f-logo: var(--font-inter), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --f-serif: var(--font-instrument), "Times New Roman", serif;
   --f-mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
 

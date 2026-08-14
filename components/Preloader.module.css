@@ -65,11 +65,12 @@
   position: relative;
   display: flex;
   align-items: baseline;
-  font-family: var(--f-display);
+  font-family: var(--f-logo);
   font-weight: 700;
   font-size: clamp(4rem, 12vw, 11rem);
   line-height: 0.8;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.035em;
+  color: var(--white);
   margin-left: 8%;
 }
 
@@ -84,8 +85,7 @@
 }
 
 .colon {
-  color: var(--red);
-  padding-inline: 0.06em;
+  padding-inline: 0.03em;
 }
 
 .bottom {

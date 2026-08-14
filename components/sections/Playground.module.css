@@ -1,45 +1,24 @@
+/* The lab used to be a pinned horizontal track inside its own scroll
+   container. Both are gone: the section is ordinary vertical flow, so a wheel
+   or trackpad gesture over a card is never intercepted by anything. The
+   sideways character survives as a transform-only drift on scroll. */
+
 .section {
-  padding-inline: 0;
+  padding-bottom: var(--sect-y);
 }
 
-.head {
-  padding-inline: var(--edge);
+/* --- Intro ---------------------------------------------------------------- */
+
+.intro {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: end;
+  padding-block: clamp(3rem, 9vh, 7rem) clamp(2.5rem, 7vh, 5rem);
 }
 
-.pin {
-  position: relative;
-  height: 100vh;
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.viewport {
-  overflow: hidden;
-}
-
-.track {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.85rem, 1.6vw, 1.75rem);
-  padding-inline: var(--edge);
-  will-change: transform;
-}
-
-/* --- Intro / outro panels ------------------------------------------------ */
-
-.panel {
-  flex: none;
-  height: clamp(300px, 56vh, 580px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-right: clamp(1.5rem, 5vw, 5rem);
-}
-
-.panelWord {
+.introWord {
+  grid-column: 1 / span 7;
   font-family: var(--f-display);
   font-weight: 700;
   font-size: clamp(3rem, 11vw, 9.5rem);
@@ -48,43 +27,44 @@
   text-transform: uppercase;
 }
 
-.panelWord em {
+.introWord em {
   display: block;
   font-style: normal;
   color: transparent;
   -webkit-text-stroke: 1px var(--fg);
 }
 
-.panelNote {
-  max-width: 38ch;
+.introNote {
+  grid-column: 9 / span 4;
+  max-width: 34ch;
   color: var(--fg-dim);
+  padding-bottom: 0.6rem;
 }
 
-.outro {
-  justify-content: center;
-  gap: 1.25rem;
-  padding-inline: clamp(1.5rem, 5vw, 6rem);
-  border-left: 1px solid var(--line);
-}
+/* --- Broken grid ---------------------------------------------------------- */
 
-.outroArrow {
-  color: var(--red);
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: clamp(2.5rem, 8vh, 6rem);
+  align-items: start;
 }
-
-/* --- Experiment tiles ---------------------------------------------------- */
 
 .tile {
   position: relative;
-  flex: none;
-  height: clamp(300px, 56vh, 580px);
+  grid-column: var(--col);
+  grid-row: var(--row);
+  /* Offsets the pair within a row so no two cards share a baseline. */
+  margin-top: var(--push, 0);
   aspect-ratio: var(--ar, 1);
   border: 1px solid var(--line);
   background: var(--ink-2);
   overflow: hidden;
   text-align: left;
   display: block;
+  width: 100%;
+  will-change: transform;
   transition: border-color 0.5s var(--e-quart);
 }
 
@@ -156,14 +136,52 @@
   transform: translateY(0);
 }
 
-/* --- Progress ------------------------------------------------------------ */
+/* --- Outro ---------------------------------------------------------------- */
+
+.outro {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: end;
+  padding-top: clamp(3rem, 9vh, 6rem);
+}
+
+.outroInner {
+  grid-column: 8 / span 5;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.outroArrow {
+  color: var(--red);
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.outroWord {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 7vw, 6rem);
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.outroWord em {
+  display: block;
+  font-style: normal;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fg);
+}
+
+/* --- Progress ------------------------------------------------------------- */
 
 .progress {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: clamp(1.25rem, 3vh, 2.25rem);
-  padding-inline: var(--edge);
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
   color: var(--fg-faint);
 }
 
@@ -182,48 +200,27 @@
   transform-origin: 0 50%;
 }
 
-/* Without the pinned sideways travel there is nothing moving the track, so
-   the viewport has to scroll on its own or the later tiles are unreachable. */
-@media (prefers-reduced-motion: reduce) {
-  .pin {
-    height: auto;
-    padding-block: clamp(1.5rem, 4vh, 3rem);
-  }
-  .viewport {
-    overflow-x: auto;
-  }
-  .track {
-    transform: none !important;
-  }
-}
-
 @media (max-width: 860px) {
-  .pin {
-    height: auto;
-    padding-block: clamp(1.5rem, 4vh, 3rem);
+  .introWord {
+    grid-column: 1 / -1;
   }
-  .viewport {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  .introNote {
+    grid-column: 1 / -1;
+    padding-top: 1.5rem;
+    padding-bottom: 0;
   }
-  .viewport::-webkit-scrollbar {
-    display: none;
+  /* One column, alternating indents — the broken grid restated for portrait
+     rather than a squashed copy of the desktop arrangement. */
+  .grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    row-gap: clamp(2rem, 6vh, 3rem);
   }
-  .track {
-    transform: none !important;
+  .tile {
+    grid-column: var(--col-sm, 1 / -1);
+    grid-row: auto;
+    margin-top: 0;
   }
-  .tile,
-  .panel {
-    height: clamp(260px, 44vh, 380px);
-    scroll-snap-align: center;
-  }
-  .panel {
-    max-width: 74vw;
-  }
-  .outro {
-    padding-inline: 1.5rem;
+  .outroInner {
+    grid-column: 1 / -1;
   }
 }

@@ -45,7 +45,7 @@ components/
   Preloader.tsx        load sequence and curtain
   Nav.tsx              section tracking, surface-aware bar, overlay menu
   sections/            01 Hero … 07 Footer
-  webgl/               hero point cloud + procedural shape targets
+  webgl/               hero survey field (point terrain)
   canvas/              service plates, process diagram, experiment host
 lib/
   experiments.ts       the six generative sketches
@@ -55,9 +55,29 @@ lib/
 
 ## Conventions worth knowing
 
+**The wordmark is Inter, monochrome, and nothing else uses that face.** It has
+its own token (`--f-logo`) and carries no accent colour — no red colon, no
+hover tint. On dark surfaces it is white; in the nav it takes `currentColor` so
+it stays legible when the page inverts. Red is an accent everywhere *except*
+inside the mark.
+
 **Surfaces.** Sections carry `data-surface="ink" | "paper" | "red"`, which
 re-binds `--bg`/`--fg`/`--line`. The nav and cursor read the same attribute so
 they invert with the page instead of guessing.
+
+**Nothing may take the wheel.** The Playground is ordinary vertical flow: no
+pin, no horizontal track, no nested scroll container, and no
+`data-lenis-prevent` anywhere in the app. That attribute tells Lenis to ignore
+wheel events originating inside an element — on a container that cannot itself
+scroll, the page simply freezes under the pointer. The cards' sideways
+character is a transform-only parallax on scroll, which cannot capture input.
+If you add a scrolling region, verify a wheel over it still moves the page.
+
+**Transitions compress, they do not cut.** Where a word is replaced (How We
+Think, the Studio pair), the width axis and tracking travel continuously across
+the whole event and the text is exchanged at the pinch, while opacity is zero.
+The reader sees one object reshaping. Avoid mask-and-slide swaps here — they
+read as two words, which is what this replaced.
 
 **Sections are numbered.** Every section renders a `<Marker>`, which also
 supplies the section's `<h2>` — the oversized statements are content, not
@@ -72,6 +92,15 @@ at 30fps; the hero's WebGL loop pauses when the hero leaves the viewport.
 swapped imperatively (`Process`, `PointOfView`, the cursor label, the readouts)
 are rendered empty and seeded in an effect. Letting React own that text breaks
 reconciliation when the tree re-renders.
+
+**The process diagram is driven, not self-animating.** `ProcessDiagram` reads a
+`driver` ref (`{ trail, dot }`) that the section's timeline writes to, so the
+trail finishes travelling before the destination node scales in. They were two
+independent tweens once, and the dot consistently arrived first.
+
+**Tight leading plus `overflow: hidden` crops descenders.** The Studio pair lost
+the tail of its "Q" that way. Where a mask is not doing real work, drop it and
+carry the transition on transform and opacity instead.
 
 **Reduced motion is a layout, not a switch.** Sections with pinned sequences
 also render a static editorial version; CSS picks one and `gsap.matchMedia`

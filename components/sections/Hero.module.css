@@ -4,32 +4,77 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding-block: clamp(5.5rem, 11vh, 8rem) clamp(1.5rem, 4vh, 2.5rem);
   overflow: hidden;
 }
 
-.canvas {
+/* The survey field sits right and low, bleeding off both edges so the frame
+   crops it rather than containing it. */
+.field {
   position: absolute;
-  inset: 0;
-  /* Weighted up and right so the headline owns the lower left outright. */
-  transform: translate(11%, -14%);
+  top: 14%;
+  right: -8%;
+  bottom: -12%;
+  left: 28%;
 }
 
-/* Legibility scrim only — the type sits directly on the cloud. */
 .scrim {
   position: absolute;
   inset: auto 0 0 0;
-  height: 52%;
-  background: linear-gradient(to top, var(--ink) 12%, rgba(10, 10, 10, 0.55) 48%, transparent);
+  height: 62%;
+  background: linear-gradient(to top, var(--ink) 6%, rgba(10, 10, 10, 0.45) 52%, transparent);
   pointer-events: none;
 }
 
-.meta {
+/* --- Construction lines --------------------------------------------------- */
+
+.gridLine {
+  position: absolute;
+  background: var(--line);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.gridV {
+  top: 0;
+  bottom: 0;
+  left: 66%;
+  width: 1px;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+
+.ruleTop {
+  position: relative;
+  z-index: var(--z-content);
+  height: 1px;
+  background: var(--line);
+  margin-top: clamp(0.9rem, 2.4vh, 1.6rem);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--line) 0 1px,
+    transparent 1px 64px
+  );
+}
+
+/* --- Metadata ------------------------------------------------------------- */
+
+.top {
   position: relative;
   z-index: var(--z-content);
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 2rem;
   color: var(--fg-dim);
 }
@@ -41,6 +86,10 @@
 
 .metaRight {
   text-align: right;
+}
+
+.metaIdx {
+  color: var(--red);
 }
 
 .avail {
@@ -68,7 +117,128 @@
   }
 }
 
-/* Vertical scroll cue riding the left edge. */
+/* --- Lockup --------------------------------------------------------------- */
+
+.lockup {
+  position: relative;
+  z-index: var(--z-content);
+  margin-top: auto;
+  padding-bottom: clamp(1rem, 3vh, 2rem);
+}
+
+.mark {
+  display: flex;
+  align-items: flex-end;
+  font-family: var(--f-logo);
+  font-weight: 700;
+  /* The wordmark is the composition. White only — no accent inside it. */
+  font-size: clamp(5.5rem, 34vw, 30rem);
+  line-height: 0.8;
+  letter-spacing: -0.045em;
+  color: var(--white);
+  margin: 0;
+}
+
+/* Per-glyph masks, sized with headroom so no part of a numeral or the colon
+   can be cropped at any point in the reveal. */
+.glyph {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.05em;
+  margin-bottom: -0.05em;
+}
+
+.glyph > span {
+  display: block;
+  will-change: transform;
+}
+
+.sub {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  margin-top: clamp(0.6rem, 1.8vh, 1.4rem);
+  /* Sits under the colon, not the first numeral — the line is offset against
+     the mark rather than centred on it. */
+  margin-left: 0.34em;
+  overflow: hidden;
+}
+
+.subInner {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.6rem, 1.6vw, 1.4rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(0.9rem, 2.6vw, 2.15rem);
+  line-height: 1.1;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.subOutline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fg);
+}
+
+/* --- Red marker ----------------------------------------------------------- */
+
+/* A register mark on the construction line, labelled so it reads as a survey
+   point rather than a stray dot. */
+.marker {
+  position: absolute;
+  z-index: 2;
+  top: 30%;
+  left: 66%;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.markerLabel {
+  position: absolute;
+  left: calc(66% + 20px);
+  top: 30%;
+  z-index: 2;
+  transform: translateY(-50%);
+  color: var(--fg-faint);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.markerLabel b {
+  color: var(--red);
+  font-weight: 400;
+}
+
+.marker::before,
+.marker::after {
+  content: '';
+  position: absolute;
+  background: var(--red);
+}
+
+.marker::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.marker::after {
+  top: 50%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+  transform: translateY(-50%);
+}
+
+/* --- Scroll cue ----------------------------------------------------------- */
+
 .scrollCue {
   position: absolute;
   left: calc(var(--edge) * 0.42);
@@ -113,48 +283,7 @@
   }
 }
 
-/* --- Statement ----------------------------------------------------------- */
-
-.statement {
-  position: relative;
-  z-index: var(--z-content);
-  margin-top: auto;
-  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.line {
-  /* Deliberately below --t-xl: the cloud is the loudest thing here, and the
-     statement has to sit beside it rather than fight it. */
-  font-size: clamp(3.4rem, 8vw, 8.5rem);
-  display: block;
-  overflow: hidden;
-  /* Room for the period's overshoot without letting the mask leak. */
-  padding-bottom: 0.06em;
-  margin-bottom: -0.06em;
-  will-change: transform;
-}
-
-.line > span {
-  display: block;
-  will-change: transform;
-}
-
-/* The middle line steps in and drops to outline — the composition reads as
-   three weights of the same voice rather than one solid block. */
-.lineB {
-  margin-left: 16%;
-}
-
-.lineB > span {
-  color: transparent;
-  -webkit-text-stroke: 1px var(--fg);
-}
-
-.stop {
-  color: var(--red);
-}
-
-/* --- Footer bar ---------------------------------------------------------- */
+/* --- Bottom bar ----------------------------------------------------------- */
 
 .bar {
   position: relative;
@@ -177,62 +306,66 @@
   transform-origin: 0 50%;
 }
 
-.lede {
+.claim {
   color: var(--fg);
   flex: none;
   white-space: nowrap;
 }
 
-.form {
+.coord {
   margin-left: auto;
   display: flex;
-  align-items: baseline;
-  gap: 0.6em;
+  gap: 1.25rem;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.formName {
+.coord b {
   color: var(--fg);
-  min-width: 7ch;
-  display: inline-block;
+  font-weight: 400;
 }
 
-.arrow {
-  color: var(--red);
-  font-size: 1.1em;
-  animation: nudge 2.4s var(--e-cubic) infinite;
-}
-
-@keyframes nudge {
-  0%,
-  100% {
-    transform: translateY(0);
+@media (max-width: 900px) {
+  /* Portrait: the field becomes a wide central band the lockup sits into,
+     rather than a strip below it with dead space above. */
+  .field {
+    top: 20%;
+    left: -20%;
+    right: -20%;
+    bottom: 6%;
+    height: auto;
   }
-  50% {
-    transform: translateY(4px);
-  }
-}
-
-@media (max-width: 860px) {
-  .scrollCue,
-  .lede {
+  .gridV {
     display: none;
   }
-  /* Portrait viewports get a shorter canvas box. The cloud is fitted to the
-     frame's width, so a squarer frame renders the mark far larger than
-     scaling it inside a tall one would. */
-  .canvas {
-    inset: 9% 0 30% 0;
-    transform: none;
+  .marker {
+    left: 82%;
+    top: 22%;
   }
-  .lineB {
-    margin-left: 8%;
+  .markerLabel {
+    display: none;
   }
-  .bar {
-    justify-content: space-between;
+  .mark {
+    font-size: clamp(4.5rem, 52vw, 30rem);
   }
-  .form {
+  .scrim {
+    height: 44%;
+  }
+  .sub {
+    margin-left: 0.1em;
+  }
+  .subInner {
+    letter-spacing: 0.2em;
+    font-size: clamp(0.75rem, 3.4vw, 1.5rem);
+  }
+  .scrollCue,
+  .claim {
+    display: none;
+  }
+  .coord {
     margin-left: 0;
+    justify-content: space-between;
+    width: 100%;
   }
 }
 

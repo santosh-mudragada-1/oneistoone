@@ -94,9 +94,11 @@
   gap: clamp(0.75rem, 3vw, 3rem);
 }
 
+/* No mask here. The pair transitions on the width axis and opacity, so there
+   is nothing to hide behind — and nothing that can crop a letterform. */
 .word {
   display: block;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .word > span {
@@ -104,10 +106,13 @@
   font-family: var(--f-display);
   font-weight: 700;
   font-size: clamp(2.25rem, 7.4vw, 7.5rem);
-  line-height: 0.9;
+  /* Roomy enough for the full glyph box at every width setting. */
+  line-height: 1;
   letter-spacing: -0.05em;
   text-transform: uppercase;
-  will-change: transform;
+  font-stretch: 100%;
+  white-space: nowrap;
+  will-change: font-stretch, letter-spacing, opacity;
 }
 
 .wordA {
@@ -143,19 +148,15 @@
   color: var(--fg-dim);
 }
 
-/* Must be a block — an inline element with overflow:hidden clips its own
-   glyphs instead of masking the child. */
 .note {
   display: block;
-  overflow: hidden;
   padding-bottom: 0.15em;
-  margin-bottom: -0.15em;
 }
 
 .note > span {
   display: block;
   color: var(--fg);
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 .count {

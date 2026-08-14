@@ -1,0 +1,97 @@
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-frame);
+  pointer-events: none;
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+/* Scroll progress — the only permanently visible red on the page. */
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: var(--red);
+  z-index: var(--z-frame);
+  mix-blend-mode: normal;
+}
+
+/* Registration crosses, as on a print production sheet. */
+.mark {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  opacity: 0.34;
+}
+
+.mark::before,
+.mark::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+
+.mark::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.mark::after {
+  top: 50%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+}
+
+.tl {
+  top: 14px;
+  left: 14px;
+}
+.tr {
+  top: 14px;
+  right: 14px;
+}
+.bl {
+  bottom: 14px;
+  left: 14px;
+}
+.br {
+  bottom: 14px;
+  right: 14px;
+}
+
+.readout {
+  position: fixed;
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  z-index: var(--z-frame);
+  pointer-events: none;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Vertical scroll counter on the right edge. */
+.scrollPct {
+  right: calc(var(--edge) * 0.42);
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  letter-spacing: 0.3em;
+}
+
+@media (max-width: 900px) {
+  .frame,
+  .readout {
+    display: none;
+  }
+}

@@ -1,0 +1,297 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 4rem);
+  padding: clamp(1.1rem, 2.4vw, 1.9rem) var(--edge);
+  color: var(--paper);
+  transition: color 0.45s var(--e-quart), padding 0.6s var(--e-expo);
+}
+
+/* Follows the surface of the section under it, so the red never gets
+   mangled by a blend mode. */
+.nav[data-theme='paper'] {
+  color: var(--ink);
+}
+
+.nav[data-compact='true'] {
+  padding-block: clamp(0.7rem, 1.3vw, 1rem);
+}
+
+/* Past the hero the nav takes the surface colour as a solid bar. Oversized
+   type and the red block pass underneath it, and transparent chrome was
+   unreadable against both. */
+.nav[data-compact='true']:not([data-menu='true']) {
+  background: var(--ink);
+}
+
+.nav[data-compact='true'][data-theme='paper']:not([data-menu='true']) {
+  background: var(--paper);
+}
+
+.underline {
+  position: absolute;
+  left: var(--edge);
+  right: var(--edge);
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.14;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.8s var(--e-expo);
+}
+
+.nav[data-compact='true'] .underline {
+  transform: scaleX(1);
+}
+
+/* --- Mark ---------------------------------------------------------------- */
+
+.mark {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.15rem, 1.5vw, 1.5rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  transition: font-size 0.6s var(--e-expo);
+}
+
+.colon {
+  color: var(--red);
+  padding-inline: 0.02em;
+}
+
+.markMeta {
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.42;
+  margin-left: 0.85rem;
+  align-self: center;
+}
+
+/* --- Links --------------------------------------------------------------- */
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.1rem, 2.6vw, 2.6rem);
+  margin-left: auto;
+  transition: opacity 0.4s var(--e-quart);
+}
+
+/* The overlay restates every link at full size, so the bar version steps out
+   of the way while it is open. */
+.nav[data-menu='true'] .links,
+.nav[data-menu='true'] .markMeta {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  padding-block: 0.35rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: currentColor;
+  opacity: 0.62;
+  transition: opacity 0.35s var(--e-quart);
+}
+
+.link:hover,
+.link:focus-visible {
+  opacity: 1;
+}
+
+.link[data-active='true'] {
+  opacity: 1;
+  color: var(--red);
+}
+
+.linkIdx {
+  font-size: var(--t-micro);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.55s var(--e-expo);
+}
+
+.link:hover::after,
+.link:focus-visible::after,
+.link[data-active='true']::after {
+  transform: scaleX(1);
+}
+
+.link[data-active='true']::after {
+  transform-origin: 0 50%;
+  background: var(--red);
+}
+
+/* --- Menu button --------------------------------------------------------- */
+
+.menuBtn {
+  position: relative;
+  z-index: calc(var(--z-menu) + 1);
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: currentColor;
+  padding: 0.35rem 0;
+}
+
+.menuBtn[data-open='true'] {
+  color: var(--paper);
+}
+
+.menuGlyph {
+  display: inline-block;
+  width: 1em;
+  color: var(--red);
+  transition: transform 0.5s var(--e-expo);
+}
+
+.menuBtn:hover .menuGlyph {
+  transform: rotate(90deg);
+}
+
+.menuBtn[data-open='true'] .menuGlyph {
+  transform: rotate(45deg);
+}
+
+@media (max-width: 860px) {
+  .links,
+  .markMeta {
+    display: none;
+  }
+  .menuBtn {
+    margin-left: auto;
+  }
+}
+
+/* --- Overlay menu -------------------------------------------------------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu);
+  background: var(--ink);
+  color: var(--paper);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: clamp(6rem, 14vh, 9rem) var(--edge) var(--edge);
+  clip-path: inset(0 0 100% 0);
+  visibility: hidden;
+}
+
+.overlayInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bigLink {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.8rem, 2.5vw, 2.5rem);
+  padding-block: clamp(0.2rem, 1vw, 0.7rem);
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.bigLink:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.bigIdx {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.16em;
+  color: var(--red);
+  width: 2.5em;
+  flex: none;
+}
+
+.bigWord {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 10vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-stretch: 100%;
+  /* Real width-axis interpolation, not a scale transform. */
+  transition: font-stretch 0.6s var(--e-expo), color 0.4s var(--e-quart);
+  will-change: font-stretch;
+}
+
+.bigLink:hover .bigWord,
+.bigLink:focus-visible .bigWord {
+  font-stretch: 122%;
+  color: var(--red);
+}
+
+.bigArrow {
+  margin-left: auto;
+  align-self: center;
+  color: var(--red);
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
+  opacity: 0;
+  transform: translateX(-1.5rem);
+  transition: opacity 0.45s var(--e-quart), transform 0.55s var(--e-expo);
+}
+
+.bigLink:hover .bigArrow,
+.bigLink:focus-visible .bigArrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.overlayFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  color: var(--fg-dim);
+}
+
+.overlayFoot a:hover {
+  color: var(--red);
+}
+
+.socials {
+  display: flex;
+  gap: 1.5rem;
+}

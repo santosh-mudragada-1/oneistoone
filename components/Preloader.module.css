@@ -1,0 +1,132 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preload);
+  overflow: hidden;
+}
+
+.bands {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.band {
+  flex: 1;
+  background: var(--ink);
+  will-change: transform;
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+  padding: var(--edge);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: var(--paper);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  color: var(--fg-faint);
+}
+
+/* The crosshair that the mark registers against — 1:1, dead centre of its
+   own module even though the module sits off-centre in the frame. */
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cross {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--line);
+  transform: scaleX(0);
+}
+
+.crossV {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 22%;
+  width: 1px;
+  background: var(--line);
+  transform: scaleY(0);
+}
+
+.mark {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(4rem, 12vw, 11rem);
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  margin-left: 8%;
+}
+
+.glyph {
+  display: block;
+  overflow: hidden;
+}
+
+.glyph > span {
+  display: block;
+  will-change: transform;
+}
+
+.colon {
+  color: var(--red);
+  padding-inline: 0.06em;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+}
+
+.count {
+  font-family: var(--f-mono);
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pct {
+  font-size: 0.3em;
+  vertical-align: super;
+  color: var(--red);
+  letter-spacing: 0;
+}
+
+.status {
+  color: var(--fg-faint);
+  padding-bottom: 0.5rem;
+}
+
+.rule {
+  position: absolute;
+  left: var(--edge);
+  right: var(--edge);
+  bottom: calc(var(--edge) - 1px);
+  height: 1px;
+  background: var(--line-soft);
+}
+
+.ruleFill {
+  height: 100%;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}

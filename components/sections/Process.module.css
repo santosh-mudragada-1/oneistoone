@@ -1,0 +1,250 @@
+.section {
+  padding-bottom: 0;
+}
+
+.pin {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  /* Plate pinned top-right, type anchored bottom-left. The diagonal between
+     them is the composition. */
+  justify-content: space-between;
+  padding-block: clamp(5rem, 10vh, 7.5rem) clamp(1.5rem, 4vh, 2.5rem);
+}
+
+/* --- Diagram plate ------------------------------------------------------- */
+
+.plate {
+  position: relative;
+  align-self: flex-end;
+  width: min(66%, 840px);
+  height: min(40vh, 360px);
+  border: 1px solid var(--line);
+}
+
+.plateHead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--fg-faint);
+  z-index: 1;
+}
+
+.plateHead b {
+  color: var(--red);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.diagram {
+  position: absolute;
+  inset: 2.1rem 0.75rem 0.75rem;
+  pointer-events: none;
+}
+
+/* --- Body ---------------------------------------------------------------- */
+
+.body {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: clamp(1.5rem, 5vw, 5rem);
+}
+
+.stageWrap {
+  min-width: 0;
+}
+
+.stageIdx {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  color: var(--fg-dim);
+  margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+}
+
+.stageIdx b {
+  color: var(--red);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.wordMask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.word {
+  display: flex;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.75rem, 12vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  font-stretch: 100%;
+  will-change: font-stretch;
+}
+
+.char {
+  display: inline-block;
+  will-change: transform;
+}
+
+.rule {
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  margin-top: clamp(0.6rem, 1.6vh, 1.1rem);
+}
+
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  margin-top: clamp(0.8rem, 2vh, 1.3rem);
+  color: var(--fg-dim);
+  overflow: hidden;
+  padding-bottom: 0.15em;
+}
+
+.note i {
+  color: var(--red);
+  flex: none;
+}
+
+.noteText {
+  display: block;
+  color: var(--fg);
+  will-change: transform;
+}
+
+/* --- Index rail ---------------------------------------------------------- */
+
+.rail {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: end;
+  text-align: right;
+  border-left: 1px solid var(--line);
+  padding-left: clamp(1rem, 2.5vw, 2rem);
+}
+
+.railHead {
+  color: var(--fg-faint);
+  margin-bottom: 0.4rem;
+}
+
+.railItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  color: var(--fg-faint);
+  transition: color 0.45s var(--e-quart);
+  white-space: nowrap;
+}
+
+.railItem[data-state='done'] {
+  color: var(--fg-dim);
+}
+
+.railItem[data-state='on'] {
+  color: var(--fg);
+}
+
+.railNum {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.railItem[data-state='on'] .railNum {
+  color: var(--red);
+  opacity: 1;
+}
+
+.railDash {
+  display: inline-block;
+  width: 0;
+  height: 1px;
+  background: var(--red);
+  transition: width 0.6s var(--e-expo);
+  align-self: center;
+}
+
+.railItem[data-state='on'] .railDash {
+  width: 1.6rem;
+}
+
+/* --- Reduced-motion layout ------------------------------------------------
+   Both compositions stay in the DOM and CSS picks one. Swapping React trees
+   here would fight ScrollTrigger's pin spacer. */
+
+.staticList {
+  display: none;
+  padding-block: clamp(2rem, 6vh, 4rem) var(--sect-y);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin {
+    display: none;
+  }
+  .staticList {
+    display: block;
+  }
+}
+
+.staticItem {
+  padding-block: clamp(1rem, 3vh, 2rem);
+  border-top: 1px solid var(--line);
+}
+
+.staticWord {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-lg);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 860px) {
+  /* Portrait has far more height than this composition needs; centring with a
+     fixed gap avoids stranding the word at the bottom of a tall void. */
+  .pin {
+    justify-content: center;
+    gap: clamp(2rem, 7vh, 4.5rem);
+  }
+  .plate {
+    width: 100%;
+    height: min(30vh, 240px);
+  }
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+  .rail {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+    padding-top: 1rem;
+    justify-items: start;
+    text-align: left;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 1rem;
+  }
+  .railHead {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,229 @@
+.section {
+  padding-bottom: clamp(3rem, 8vh, 6rem);
+  overflow: hidden;
+}
+
+.top {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: clamp(2rem, 6vh, 4rem);
+}
+
+.avail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--fg-dim);
+}
+
+.availDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* --- Statement ----------------------------------------------------------- */
+
+.statement {
+  padding-block: clamp(1.5rem, 4vh, 3rem) clamp(2.5rem, 7vh, 5rem);
+}
+
+.line {
+  font-size: var(--t-xxl);
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.line > span {
+  display: block;
+  will-change: transform;
+}
+
+.lineB {
+  margin-left: 14%;
+}
+
+.stop {
+  color: var(--red);
+}
+
+/* --- Red bar: the last big move ------------------------------------------ */
+
+.bar {
+  position: relative;
+  display: block;
+  background: var(--red);
+  color: var(--ink);
+  overflow: hidden;
+  height: clamp(88px, 13vh, 150px);
+  transition: height 0.75s var(--e-expo);
+}
+
+.bar:hover,
+.bar:focus-visible {
+  height: clamp(120px, 20vh, 240px);
+}
+
+.ticker {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.tickerGroup {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+.tickerItem {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding-right: clamp(1.5rem, 4vw, 3rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 5.5vw, 4.75rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tickerMark {
+  font-size: 0.45em;
+  transform: translateY(-0.1em);
+}
+
+.barMeta {
+  position: absolute;
+  left: var(--edge);
+  right: var(--edge);
+  bottom: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(10, 10, 10, 0.65);
+  pointer-events: none;
+}
+
+/* --- Direct line --------------------------------------------------------- */
+
+.direct {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(1.25rem, 4vw, 3rem);
+  padding-top: clamp(1.75rem, 5vh, 3rem);
+}
+
+.emailBlock {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.email {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-md);
+  letter-spacing: -0.035em;
+  text-transform: lowercase;
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+}
+
+.email::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.1em;
+  width: 100%;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 100% 50%;
+  transition: transform 0.6s var(--e-expo);
+}
+
+.email:hover::after,
+.email:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: 0 50%;
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  width: fit-content;
+  color: var(--fg-dim);
+  transition: color 0.35s var(--e-quart);
+}
+
+.copy:hover {
+  color: var(--red);
+}
+
+.copyDot {
+  width: 6px;
+  height: 6px;
+  border: 1px solid currentColor;
+  transition: background 0.35s var(--e-quart);
+}
+
+.copy[data-done='true'] {
+  color: var(--red);
+}
+
+.copy[data-done='true'] .copyDot {
+  background: var(--red);
+}
+
+.socials {
+  display: flex;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  color: var(--fg-dim);
+}
+
+.socials a {
+  position: relative;
+}
+
+.socials a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.35em;
+  width: 100%;
+  height: 1px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.5s var(--e-expo);
+}
+
+.socials a:hover::after,
+.socials a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (max-width: 700px) {
+  .lineB {
+    margin-left: 6%;
+  }
+  .barMeta {
+    display: none;
+  }
+  .direct {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

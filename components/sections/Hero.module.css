@@ -1,0 +1,243 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-block: clamp(5.5rem, 11vh, 8rem) clamp(1.5rem, 4vh, 2.5rem);
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  /* Weighted up and right so the headline owns the lower left outright. */
+  transform: translate(11%, -14%);
+}
+
+/* Legibility scrim only — the type sits directly on the cloud. */
+.scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 52%;
+  background: linear-gradient(to top, var(--ink) 12%, rgba(10, 10, 10, 0.55) 48%, transparent);
+  pointer-events: none;
+}
+
+.meta {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  color: var(--fg-dim);
+}
+
+.metaCol {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.metaRight {
+  text-align: right;
+}
+
+.avail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--fg);
+}
+
+.availDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: blink 2.6s var(--e-cubic) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* Vertical scroll cue riding the left edge. */
+.scrollCue {
+  position: absolute;
+  left: calc(var(--edge) * 0.42);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--fg-dim);
+}
+
+.scrollCue span {
+  writing-mode: vertical-rl;
+  letter-spacing: 0.34em;
+}
+
+.scrollLine {
+  width: 1px;
+  height: 74px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.scrollLine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  animation: travel 2.6s var(--e-cubic) infinite;
+}
+
+@keyframes travel {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+/* --- Statement ----------------------------------------------------------- */
+
+.statement {
+  position: relative;
+  z-index: var(--z-content);
+  margin-top: auto;
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.line {
+  /* Deliberately below --t-xl: the cloud is the loudest thing here, and the
+     statement has to sit beside it rather than fight it. */
+  font-size: clamp(3.4rem, 8vw, 8.5rem);
+  display: block;
+  overflow: hidden;
+  /* Room for the period's overshoot without letting the mask leak. */
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+  will-change: transform;
+}
+
+.line > span {
+  display: block;
+  will-change: transform;
+}
+
+/* The middle line steps in and drops to outline — the composition reads as
+   three weights of the same voice rather than one solid block. */
+.lineB {
+  margin-left: 16%;
+}
+
+.lineB > span {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fg);
+}
+
+.stop {
+  color: var(--red);
+}
+
+/* --- Footer bar ---------------------------------------------------------- */
+
+.bar {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 4vw, 3rem);
+  padding-top: 1rem;
+  color: var(--fg-dim);
+}
+
+.barRule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.lede {
+  color: var(--fg);
+  flex: none;
+  white-space: nowrap;
+}
+
+.form {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  white-space: nowrap;
+}
+
+.formName {
+  color: var(--fg);
+  min-width: 7ch;
+  display: inline-block;
+}
+
+.arrow {
+  color: var(--red);
+  font-size: 1.1em;
+  animation: nudge 2.4s var(--e-cubic) infinite;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@media (max-width: 860px) {
+  .scrollCue,
+  .lede {
+    display: none;
+  }
+  /* Portrait viewports get a shorter canvas box. The cloud is fitted to the
+     frame's width, so a squarer frame renders the mark far larger than
+     scaling it inside a tall one would. */
+  .canvas {
+    inset: 9% 0 30% 0;
+    transform: none;
+  }
+  .lineB {
+    margin-left: 8%;
+  }
+  .bar {
+    justify-content: space-between;
+  }
+  .form {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .metaRight {
+    display: none;
+  }
+}

@@ -1,0 +1,89 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.dot,
+.ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.ring {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--paper);
+  transform: scale(0);
+}
+
+.label {
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper);
+  opacity: 0;
+  white-space: nowrap;
+}
+
+/* The cursor reads the surface it is standing on and inverts to match, so it
+   stays legible across the ink / paper / red sections. */
+.root[data-surface='paper'] .dot {
+  background: var(--ink);
+}
+.root[data-surface='paper'] .ring {
+  border-color: var(--ink);
+}
+.root[data-surface='paper'] .label {
+  color: var(--ink);
+}
+
+.root[data-surface='red'] .dot,
+.root[data-surface='red'] .ring {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.root[data-surface='red'] .label {
+  color: var(--red);
+}
+
+/* Filled state — used on the primary contact action. */
+.root[data-fill='true'] .ring {
+  background: var(--red);
+  border-color: var(--red);
+}
+.root[data-fill='true'] .label {
+  color: var(--white);
+}
+
+/* On the red bar the fill has to invert the other way, or the ring would
+   disappear into its own background. */
+.root[data-surface='red'][data-fill='true'] .ring {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.root[data-surface='red'][data-fill='true'] .label {
+  color: var(--red);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .root {
+    display: none;
+  }
+}

@@ -1,0 +1,229 @@
+.section {
+  padding-inline: 0;
+}
+
+.head {
+  padding-inline: var(--edge);
+}
+
+.pin {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.viewport {
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.85rem, 1.6vw, 1.75rem);
+  padding-inline: var(--edge);
+  will-change: transform;
+}
+
+/* --- Intro / outro panels ------------------------------------------------ */
+
+.panel {
+  flex: none;
+  height: clamp(300px, 56vh, 580px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: clamp(1.5rem, 5vw, 5rem);
+}
+
+.panelWord {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(3rem, 11vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.panelWord em {
+  display: block;
+  font-style: normal;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fg);
+}
+
+.panelNote {
+  max-width: 38ch;
+  color: var(--fg-dim);
+}
+
+.outro {
+  justify-content: center;
+  gap: 1.25rem;
+  padding-inline: clamp(1.5rem, 5vw, 6rem);
+  border-left: 1px solid var(--line);
+}
+
+.outroArrow {
+  color: var(--red);
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+/* --- Experiment tiles ---------------------------------------------------- */
+
+.tile {
+  position: relative;
+  flex: none;
+  height: clamp(300px, 56vh, 580px);
+  aspect-ratio: var(--ar, 1);
+  border: 1px solid var(--line);
+  background: var(--ink-2);
+  overflow: hidden;
+  text-align: left;
+  display: block;
+  transition: border-color 0.5s var(--e-quart);
+}
+
+.tile:hover,
+.tile:focus-visible {
+  border-color: rgba(255, 42, 26, 0.55);
+}
+
+.canvasWrap {
+  position: absolute;
+  inset: 0;
+}
+
+.tileTop,
+.tileBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.8rem;
+  pointer-events: none;
+}
+
+.tileTop {
+  top: 0;
+  color: var(--fg-dim);
+}
+
+.tileBottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.9), transparent);
+}
+
+.tileCode {
+  color: var(--red);
+}
+
+.tileTitle {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.5vw, 1.4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.tileTag {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--fg-faint);
+}
+
+.tileHint {
+  color: var(--red);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.4s var(--e-quart), transform 0.5s var(--e-expo);
+  white-space: nowrap;
+}
+
+.tile:hover .tileHint,
+.tile:focus-visible .tileHint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Progress ------------------------------------------------------------ */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: clamp(1.25rem, 3vh, 2.25rem);
+  padding-inline: var(--edge);
+  color: var(--fg-faint);
+}
+
+.progressRail {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* Without the pinned sideways travel there is nothing moving the track, so
+   the viewport has to scroll on its own or the later tiles are unreachable. */
+@media (prefers-reduced-motion: reduce) {
+  .pin {
+    height: auto;
+    padding-block: clamp(1.5rem, 4vh, 3rem);
+  }
+  .viewport {
+    overflow-x: auto;
+  }
+  .track {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .pin {
+    height: auto;
+    padding-block: clamp(1.5rem, 4vh, 3rem);
+  }
+  .viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .track {
+    transform: none !important;
+  }
+  .tile,
+  .panel {
+    height: clamp(260px, 44vh, 380px);
+    scroll-snap-align: center;
+  }
+  .panel {
+    max-width: 74vw;
+  }
+  .outro {
+    padding-inline: 1.5rem;
+  }
+}

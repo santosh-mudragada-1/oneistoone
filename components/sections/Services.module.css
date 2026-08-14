@@ -1,0 +1,202 @@
+.section {
+  padding-bottom: clamp(4rem, 10vh, 8rem);
+}
+
+.head {
+  display: flex;
+  justify-content: flex-end;
+  padding-block: clamp(2.5rem, 7vh, 5rem) clamp(1.5rem, 4vh, 3rem);
+}
+
+.hint {
+  color: var(--fg-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.hint i {
+  color: var(--red);
+  font-style: normal;
+}
+
+/* --- List ---------------------------------------------------------------- */
+
+.list {
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  border-bottom: 1px solid var(--line);
+}
+
+.trigger {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.2rem 1fr auto;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  width: 100%;
+  text-align: left;
+  padding-block: clamp(0.5rem, 1.4vw, 1.1rem);
+  transition: opacity 0.5s var(--e-quart);
+}
+
+/* Everything else recedes while one discipline is being read. */
+.list[data-hot='true'] .row:not([data-active='true']) .trigger {
+  opacity: 0.28;
+}
+
+.idx {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.16em;
+  color: var(--fg-faint);
+  align-self: start;
+  padding-top: 0.9em;
+  transition: color 0.4s var(--e-quart);
+}
+
+.row[data-active='true'] .idx {
+  color: var(--red);
+}
+
+.wordMask {
+  display: block;
+  overflow: hidden;
+}
+
+.word {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  /* Each discipline claims a different amount of the page. */
+  font-size: calc(var(--t-lg) * var(--scale, 1));
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-stretch: 100%;
+  will-change: transform, font-stretch;
+  transition: font-stretch 0.65s var(--e-expo);
+}
+
+.row[data-active='true'] .word {
+  font-stretch: 120%;
+}
+
+.tail {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  justify-self: end;
+}
+
+.desc {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  text-align: right;
+  max-width: 22ch;
+  opacity: 0;
+  transform: translateX(1.2rem);
+  transition: opacity 0.5s var(--e-quart), transform 0.7s var(--e-expo);
+}
+
+.row[data-active='true'] .desc {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.plus {
+  flex: none;
+  width: 1.4em;
+  height: 1.4em;
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.1rem, 1.8vw, 1.6rem);
+  line-height: 1;
+  color: var(--red);
+  transition: transform 0.6s var(--e-expo);
+}
+
+.row[data-active='true'] .plus {
+  transform: rotate(135deg);
+}
+
+/* --- Inline preview (touch + keyboard) ----------------------------------- */
+
+.inline {
+  width: min(100%, 320px);
+  aspect-ratio: 1 / 1;
+  margin: 0 0 1.25rem 3.2rem;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  position: relative;
+}
+
+/* --- Cursor-following plate (pointer) ------------------------------------ */
+
+.panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* 1:1 — the panel is the module the whole system is named after. */
+  width: clamp(190px, 18vw, 290px);
+  aspect-ratio: 1 / 1;
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+  background: var(--ink);
+  border: 1px solid rgba(241, 241, 237, 0.18);
+  will-change: transform;
+}
+
+.panelCap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.92), transparent);
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.panelCap b {
+  color: var(--red);
+  font-weight: 400;
+}
+
+@media (max-width: 780px) {
+  .trigger {
+    grid-template-columns: 2.4rem 1fr auto;
+    align-items: start;
+  }
+  .tail {
+    align-self: start;
+    padding-top: 0.8em;
+  }
+  .desc {
+    display: none;
+  }
+  .inline {
+    margin-left: 2.4rem;
+  }
+  .head {
+    justify-content: flex-start;
+  }
+  /* Compress the scale differences rather than dropping them — the longest
+     word has to fit the measure, but the hierarchy still reads. */
+  .word {
+    font-size: calc(clamp(1.5rem, 6.6vw, 2.6rem) * (0.6 + var(--scale, 1) * 0.4));
+  }
+}

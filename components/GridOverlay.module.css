@@ -1,0 +1,66 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  pointer-events: none;
+  padding-inline: var(--edge);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.overlay[data-on='true'] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  height: 100%;
+}
+
+.col {
+  background: rgba(255, 42, 26, 0.055);
+  border-left: 1px solid rgba(255, 42, 26, 0.22);
+  border-right: 1px solid rgba(255, 42, 26, 0.22);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+
+/* Above the fold only — the horizontal rhythm is what matters here. */
+.rows {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 42, 26, 0.16) 0 1px,
+    transparent 1px 96px
+  );
+}
+
+.chip {
+  position: fixed;
+  left: 50%;
+  bottom: 2.25rem;
+  transform: translateX(-50%);
+  padding: 0.5rem 0.9rem;
+  background: var(--red);
+  color: var(--white);
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  z-index: 66;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (max-width: 700px) {
+  .col:nth-child(n + 7) {
+    display: none;
+  }
+  .cols {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

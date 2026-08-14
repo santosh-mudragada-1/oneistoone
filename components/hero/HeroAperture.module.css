@@ -1,0 +1,192 @@
+.hero {
+  position: relative;
+  height: 230vh;
+  padding: 0;
+  background: var(--ink);
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* Faint column rules — the page grid, showing through. */
+.rules {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.rules span {
+  border-left: 1px solid rgba(241, 241, 237, 0.05);
+}
+
+/* A soft wash so the frame is never flatly black. */
+.wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      120% 90% at 18% 22%,
+      rgba(241, 241, 237, 0.09),
+      transparent 60%
+    ),
+    radial-gradient(90% 70% at 82% 78%, rgba(241, 241, 237, 0.05), transparent 62%);
+  pointer-events: none;
+}
+
+/* The artwork layers sit behind the cards and are clipped to their frames,
+   so every card is a window onto one continuous object. */
+.plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tagline {
+  position: absolute;
+  left: var(--edge);
+  top: clamp(6.5rem, 14vh, 10rem);
+  z-index: 3;
+  font-family: var(--f-serif);
+  font-style: normal;
+  font-size: clamp(1.05rem, 1.7vw, 1.6rem);
+  line-height: 1.35;
+  color: var(--fg-dim);
+}
+
+/* --- Cards ---------------------------------------------------------------- */
+
+.card {
+  position: absolute;
+  border: 1px solid rgba(241, 241, 237, 0.28);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Difference blend so the label stays legible whether the artwork behind it
+   is showing black or a bright fragment of the mark. */
+.cardLabel {
+  position: absolute;
+  top: 0.55rem;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(0.78rem, 1vw, 0.98rem);
+  color: #fff;
+  mix-blend-mode: difference;
+  white-space: nowrap;
+}
+
+.labelLeft {
+  left: 0.65rem;
+}
+
+.labelRight {
+  right: 0.65rem;
+}
+
+/* --- Wordmark ------------------------------------------------------------- */
+
+.mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(-1.5rem, -1vh, 0rem);
+  z-index: 3;
+  text-align: center;
+  font-family: var(--f-serif);
+  font-style: italic;
+  /* Deliberately wider than the frame — the line is cropped by the viewport
+     on both sides, which is the point. */
+  font-size: clamp(5rem, 17.5vw, 17rem);
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  color: var(--paper);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.markInner {
+  display: inline-block;
+  will-change: transform;
+}
+
+.scrollCue {
+  position: absolute;
+  right: var(--edge);
+  bottom: clamp(7rem, 16vh, 11rem);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--fg-dim);
+  font-family: var(--f-serif);
+  font-size: 1.05rem;
+}
+
+.cueRing {
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--fg);
+}
+
+.cueArrow {
+  animation: nudge 2.4s var(--e-cubic) infinite;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+/* Clears the version switch, which is fixed to the same corner. */
+.meta {
+  position: absolute;
+  left: var(--edge);
+  bottom: clamp(10rem, 22vh, 15rem);
+  z-index: 4;
+  display: flex;
+  gap: 1.5rem;
+  color: var(--fg-faint);
+}
+
+@media (max-width: 860px) {
+  .hero {
+    height: 190vh;
+  }
+  .tagline {
+    font-size: 1rem;
+  }
+  .mark {
+    font-size: 21vw;
+    bottom: 7vh;
+  }
+  .scrollCue {
+    bottom: clamp(5rem, 13vh, 8rem);
+  }
+  /* Sits above the fixed version switch. */
+  .meta {
+    bottom: clamp(9rem, 22vh, 13rem);
+    gap: 1rem;
+  }
+  .scrollCue span {
+    display: none;
+  }
+}

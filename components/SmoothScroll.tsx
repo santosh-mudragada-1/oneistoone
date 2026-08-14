@@ -31,13 +31,16 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       return;
     }
 
+    /* Lerp mode rather than duration mode: the position eases toward the
+       target every frame, so the glide is frame-rate independent and keeps
+       responding while the wheel is still moving instead of restarting a
+       fixed-length tween on each notch. A low lerp is what gives the heavy,
+       coasting feel. */
     const instance = new Lenis({
-      duration: 1.15,
-      // Long tail-off — the scroll should coast to a stop, not snap.
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.075,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 1,
+      touchMultiplier: 1.6,
       syncTouch: false,
     });
 
@@ -59,7 +62,11 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     lenis,
     scrollTo: (target, offset = 0) => {
       if (lenis) {
-        lenis.scrollTo(target, { offset, duration: 1.5 });
+        lenis.scrollTo(target, {
+          offset,
+          duration: 1.6,
+          easing: (t) => 1 - Math.pow(1 - t, 4),
+        });
         return;
       }
       const el =

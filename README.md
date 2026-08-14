@@ -24,19 +24,37 @@ the whole system:
 Nothing on the site claims clients, projects, awards or metrics, because there
 aren't any yet. The proof is the site itself and the six live experiments.
 
-## The hero
+## Two heroes
 
-Twelve rectangles and nothing else. They assemble into a constructed `1:1`,
-then — scrubbed by scroll — travel and stretch into the twelve column
-positions the rest of the page is set on, and finally into a registration
-frame that holds the closing statement. Same twelve objects in every state,
-interpolating; there is no crossfade between forms.
+The site ships two hero versions. The control at the bottom-left switches
+between them and the choice persists in `localStorage`.
 
-`components/hero/system.ts` holds the geometry as pure data in module units,
-so proportions survive any viewport and only the module size `S` changes.
-`HeroSystem.tsx` owns a single ticker that is the *only* writer of those
-transforms — scroll progress, entrance and cursor drift are all composited
-in one place, which is why nothing fights anything else.
+**Aperture** (`HeroAperture.tsx`) — six framed cards over a dark sheet, each a
+window onto the *same* giant 1:1 mark drifting behind the page. The mark is
+never shown whole; the reader assembles it from fragments. One card resolves
+it as a Bayer dither, so the same object is read at two resolutions at once.
+Mechanically it is one full-bleed canvas with `clip-path: path()` set to the
+union of the card rectangles, plus a second canvas clipped to the dithered
+card — so the artwork stays perfectly continuous across every window with no
+per-card offset maths. Three copies of the mark interlock at different scales,
+because a single 1:1 is mostly negative space and the windows would land on
+emptiness.
+
+**Statement** (`HeroStatement.tsx`) — a light sheet where the sentence *is*
+the layout: media sits inside the line rather than beside it. Every chip is a
+live generative sketch, not a placeholder image.
+
+`components/hero/system.ts` holds the mark geometry as pure data in module
+units, so proportions survive any viewport and only the module size `S`
+changes. Both heroes draw from it, which is what keeps them the same identity
+rather than two unrelated designs.
+
+**Entrances only run on first reveal.** Both heroes take an `intro` prop; when
+a hero is swapped in mid-session it lands at rest and the sheet fades instead.
+The entrance exists to chain off the loading curtain, and on the swap path
+there is no curtain — the timeline also proved unreliable there, and a
+`fromTo` writes its from-state the moment it is built, which stranded the
+chips invisible.
 
 ## Stack
 
@@ -80,6 +98,13 @@ inside the mark.
 **Surfaces.** Sections carry `data-surface="ink" | "paper" | "red"`, which
 re-binds `--bg`/`--fg`/`--line`. The nav and cursor read the same attribute so
 they invert with the page instead of guessing.
+
+**Scroll feel lives in one place.** Lenis runs in `lerp` mode (0.075), not
+duration mode: the position eases toward the target every frame, so the glide
+is frame-rate independent and keeps responding while the wheel is still
+moving, instead of restarting a fixed-length tween on every notch. That low
+lerp is what produces the heavy, coasting feel — tune it there, not in
+individual sections.
 
 **Nothing may take the wheel.** There is one scrolling system: Lenis drives
 the window, ScrollTrigger only *observes* it, and sections that need to hold
@@ -136,7 +161,8 @@ remove.
 |---|---|
 | `G` | toggle the layout grid |
 | `Esc` | close the menu |
-| Hover a discipline | live generative plate follows the cursor |
+| Hover a discipline | plate settles on that row, alternating left/right |
+| Bottom-left control | switch hero version (persisted) |
 | Click an experiment | reseed the composition |
 | Tab | full keyboard path, visible focus, skip link first |
 # oneistoone

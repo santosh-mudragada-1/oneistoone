@@ -171,8 +171,9 @@ export const halftone: Sketch = ({ ctx, t, w, h, px, py, energy, seed }) => {
       const r = (step * 0.52) * k;
       if (r < 0.4) continue;
       // Red marks one density contour rather than filling the core, so it
-      // stays an accent instead of becoming the subject.
-      ctx.fillStyle = k > 0.72 && k < 0.79 ? RED : PAPER;
+      // stays an accent instead of becoming the subject. Kept narrow — at
+      // thumbnail size a wide band reads as a red field.
+      ctx.fillStyle = k > 0.745 && k < 0.775 ? RED : PAPER;
       ctx.globalAlpha = 0.25 + k * 0.75;
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);

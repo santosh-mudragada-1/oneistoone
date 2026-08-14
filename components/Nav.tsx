@@ -29,6 +29,28 @@ export default function Nav() {
      the nav's own baseline so the switch happens exactly as it crosses. */
   useEffect(() => {
     const sections = gsap.utils.toArray<HTMLElement>('[data-section]');
+
+    /* At the very top of the page no trigger has fired yet, so the nav would
+       keep its default ink theme — invisible over a light hero. Resolve the
+       section under the nav's baseline directly, on mount and on every
+       refresh. */
+    const resolve = () => {
+      const line = 64;
+      // Queried fresh — the section list can change under us.
+      const live = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
+      const hit =
+        live.find((sec) => {
+          const r = sec.getBoundingClientRect();
+          return r.top <= line && r.bottom > line;
+        }) || live[0];
+      if (!hit) return;
+      setActive(hit.dataset.section || 'hero');
+      setTheme((hit.dataset.surface as 'ink' | 'paper' | 'red') || 'ink');
+    };
+
+    resolve();
+    ScrollTrigger.addEventListener('refresh', resolve);
+
     const triggers = sections.map((sec) =>
       ScrollTrigger.create({
         trigger: sec,
@@ -49,6 +71,7 @@ export default function Nav() {
     });
 
     return () => {
+      ScrollTrigger.removeEventListener('refresh', resolve);
       triggers.forEach((t) => t.kill());
       compactTrigger.kill();
     };

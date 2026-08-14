@@ -22,6 +22,10 @@
 
 /* --- List ---------------------------------------------------------------- */
 
+.listWrap {
+  position: relative;
+}
+
 .list {
   border-top: 1px solid var(--line);
 }
@@ -90,6 +94,24 @@
 
 .row[data-active='true'] .word {
   font-stretch: 120%;
+  color: var(--red);
+}
+
+/* Small marker that pops beside the discipline being read. */
+.dot {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.22em;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  vertical-align: 0.55em;
+  transform: scale(0);
+  transition: transform 0.5s var(--e-expo);
+}
+
+.row[data-active='true'] .dot {
+  transform: scale(1);
 }
 
 .tail {
@@ -144,21 +166,25 @@
   position: relative;
 }
 
-/* --- Cursor-following plate (pointer) ------------------------------------ */
+/* --- Anchored plate (pointer) ---------------------------------------------
+   The plate does not follow the cursor. It settles on the hovered row's
+   centre line at a horizontal anchor that alternates down the list, and
+   travels between anchors when the reader moves from row to row. */
 
 .panel {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  /* 1:1 — the panel is the module the whole system is named after. */
-  width: clamp(190px, 18vw, 290px);
+  width: clamp(175px, 15.5vw, 250px);
   aspect-ratio: 1 / 1;
-  z-index: 55;
+  /* 1:1 — and read as a circle, so it sits as a plate on the page rather
+     than as another rectangle in a list of rectangles. */
+  border-radius: 50%;
+  z-index: 2;
   pointer-events: none;
   opacity: 0;
   overflow: hidden;
   background: var(--ink);
-  border: 1px solid rgba(241, 241, 237, 0.18);
   will-change: transform;
 }
 

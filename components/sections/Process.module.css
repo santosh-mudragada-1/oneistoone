@@ -2,7 +2,7 @@
   padding-bottom: 0;
 }
 
-/* Native sticky, not a ScrollTrigger pin — see PointOfView for the reasoning.
+/* Native sticky, not a ScrollTrigger pin — see Ratio for the reasoning.
    Nothing on this page intercepts the wheel. */
 .pinWrap {
   position: relative;
@@ -87,34 +87,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Two layers stacked in one box. Deliberately no overflow, mask or clip on
-   this stage — the transition is carried entirely by the width axis, tracking
-   and opacity, so there is nothing that can crop a letterform. */
+/* Carries the type for the slice rig; the bands inside inherit all of it.
+   Deliberately no overflow, mask or clip on this stage — each band does its
+   own clipping, with a bleed, so nothing here can crop a letterform. */
 .wordStage {
   position: relative;
   font-family: var(--f-display);
   font-weight: 700;
   font-size: clamp(2.75rem, 12vw, 11rem);
   line-height: 0.88;
-  height: 0.88em;
-  text-transform: uppercase;
-}
-
-.wordLayer {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: flex;
-  white-space: nowrap;
-  line-height: 0.88;
-  font-stretch: 100%;
   letter-spacing: -0.055em;
-  will-change: font-stretch, letter-spacing, opacity;
-}
-
-.char {
-  display: inline-block;
-  will-change: transform, opacity;
+  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

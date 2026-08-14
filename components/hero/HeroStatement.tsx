@@ -7,21 +7,13 @@ import ServiceSketch from '../canvas/ServiceSketch';
 import s from './HeroStatement.module.css';
 
 /**
- * Hero — Statement.
+ * Hero.
  *
  * The sentence is the layout. Media sits inside the line rather than beside
  * it, so the type and the work occupy the same measure. Every chip is a live
  * generative sketch, not a placeholder image.
  */
-export default function HeroStatement({
-  ready,
-  intro = true,
-}: {
-  ready: boolean;
-  /** False when this hero was swapped in mid-session: the entrance sequence
-   *  exists to chain off the loading curtain, and there is no curtain here. */
-  intro?: boolean;
-}) {
+export default function HeroStatement({ ready }: { ready: boolean }) {
   const root = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const coarse = useIsCoarse();
@@ -38,10 +30,7 @@ export default function HeroStatement({
       y: gsap.quickTo(c, 'y', { duration: 1.1, ease: 'power3.out' }),
     }));
 
-    const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      const nx = (e.clientX - r.left) / r.width - 0.5;
-      const ny = (e.clientY - r.top) / r.height - 0.5;
+    const push = (nx: number, ny: number) => {
       setters.forEach((set, i) => {
         const depth = 0.4 + ((i * 3) % 4) * 0.28;
         set.x(nx * 26 * depth);
@@ -49,9 +38,32 @@ export default function HeroStatement({
       });
     };
 
+    /* Only track while the hero is actually on screen. Off screen the pointer
+       sits far outside the section's box, and an unbounded offset is what left
+       the composition scattered when the reader scrolled back up to it. */
+    let onScreen = true;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (!onScreen) push(0, 0);
+      },
+      { threshold: 0 }
+    );
+    io.observe(el);
+
+    const onMove = (e: PointerEvent) => {
+      if (!onScreen) return;
+      const r = el.getBoundingClientRect();
+      // Clamped to the section's own box: the chips lean, they never travel.
+      const nx = gsap.utils.clamp(-0.5, 0.5, (e.clientX - r.left) / r.width - 0.5);
+      const ny = gsap.utils.clamp(-0.5, 0.5, (e.clientY - r.top) / r.height - 0.5);
+      push(nx, ny);
+    };
+
     window.addEventListener('pointermove', onMove, { passive: true });
     return () => {
       window.removeEventListener('pointermove', onMove);
+      io.disconnect();
       chips.forEach((c) => gsap.killTweensOf(c));
     };
   }, [reduced, coarse]);
@@ -66,69 +78,26 @@ export default function HeroStatement({
       const ARROW = `.${s.arrow} path`;
       const META = `.${s.meta} > *`;
 
-      /* Settle the entrance to its resting state no matter what. A `fromTo`
-         writes its from-state the moment it is built, so anything that stops
-         the timeline before it plays would strand the chips invisible — which
-         is exactly what happened when the hero was swapped rather than loaded
-         directly. */
-      const settle = () => {
-        gsap.set(WORDS, { yPercent: 0 });
-        gsap.set(CHIPS, { opacity: 1, scale: 1, rotate: 0 });
-        gsap.set(ARROW, { strokeDashoffset: 0 });
-        gsap.set(META, { opacity: 1 });
-      };
+      const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
 
-      /* Swapped in rather than revealed: land at rest and fade the sheet. */
-      if (!intro) {
-        settle();
-        gsap.fromTo(root.current, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' });
-        return;
-      }
-
-      let tl: gsap.core.Timeline | null = null;
-
-      // Build on the next frame so a freshly-mounted hero has laid out first.
-      const raf = requestAnimationFrame(() => {
-        tl = build();
-      });
-      const guard = window.setTimeout(() => {
-        if (!tl || tl.progress() < 1) settle();
-      }, 3200);
-
-      function build() {
-        const t = gsap.timeline({ defaults: { ease: 'expo.out' } });
-
-        t.fromTo(
-          WORDS,
-          { yPercent: 108 },
-          { yPercent: 0, duration: d * 1.5, stagger: 0.07 },
-          0
+      tl.fromTo(WORDS, { yPercent: 108 }, { yPercent: 0, duration: d * 1.5, stagger: 0.07 }, 0)
+        .fromTo(
+          CHIPS,
+          { scale: 0.6, opacity: 0, rotate: -6 },
+          { scale: 1, opacity: 1, rotate: 0, duration: d * 1.3, stagger: 0.08 },
+          0.35
         )
-          .fromTo(
-            CHIPS,
-            { scale: 0.6, opacity: 0, rotate: -6 },
-            { scale: 1, opacity: 1, rotate: 0, duration: d * 1.3, stagger: 0.08 },
-            0.35
-          )
-          // The arrow draws rather than fades — it should feel written.
-          .fromTo(
-            ARROW,
-            { strokeDasharray: 460, strokeDashoffset: 460 },
-            { strokeDashoffset: 0, duration: d * 1.4, ease: 'power2.inOut', stagger: 0.12 },
-            0.75
-          )
-          .fromTo(META, { opacity: 0 }, { opacity: 1, duration: d, stagger: 0.1 }, 1.1);
-
-        return t;
-      }
-
-      return () => {
-        cancelAnimationFrame(raf);
-        window.clearTimeout(guard);
-      };
+        // The arrow draws rather than fades — it should feel written.
+        .fromTo(
+          ARROW,
+          { strokeDasharray: 460, strokeDashoffset: 460 },
+          { strokeDashoffset: 0, duration: d * 1.4, ease: 'power2.inOut', stagger: 0.12 },
+          0.75
+        )
+        .fromTo(META, { opacity: 0 }, { opacity: 1, duration: d, stagger: 0.1 }, 1.1);
     },
     root,
-    [ready, reduced, intro]
+    [ready, reduced]
   );
 
   return (

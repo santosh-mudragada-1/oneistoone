@@ -27,28 +27,28 @@ const monoFont = () => {
   return MONO;
 };
 
-/** Values the parent timeline writes to. Keeping them in a ref means the trail
- *  and the destination dot are phases of one animation rather than two that
- *  can drift apart. */
-export type DiagramDriver = { trail: number; dot: number };
+/**
+ * Values the parent timeline writes to. Keeping them in a ref means the trail
+ * and the destination dot are phases of one animation rather than two that can
+ * drift apart.
+ *
+ * `leg` is the connection currently being drawn *or withdrawn* — leg `i` runs
+ * from node `i` to node `i + 1`. Everything before it is settled, everything
+ * after it has not been reached. Scrolling back sends `trail` from 1 to 0 on
+ * the same leg it arrived on, so the line retreats the way it came instead of
+ * vanishing and redrawing itself.
+ */
+export type DiagramDriver = { leg: number; trail: number; dot: number };
 
-export default function ProcessDiagram({
-  stage,
-  driver,
-}: {
-  stage: number;
-  driver: React.RefObject<DiagramDriver>;
-}) {
+export default function ProcessDiagram({ driver }: { driver: React.RefObject<DiagramDriver> }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const stageRef = useRef(stage);
-  stageRef.current = stage;
 
   useSketch(
     ref,
     (ctx, w, h) => ctx.clearRect(0, 0, w, h),
     (ctx, t, w, h) => {
       ctx.clearRect(0, 0, w, h);
-      const st = stageRef.current;
+      const leg = driver.current?.leg ?? -1;
       const trail = driver.current?.trail ?? 1;
       const dot = driver.current?.dot ?? 1;
       const px = (i: number) => NODES[i][0] * w;
@@ -71,12 +71,11 @@ export default function ProcessDiagram({
       ctx.stroke();
 
       /* Connections. Everything behind the active leg is settled; the active
-         leg is drawn only as far as `trail` has travelled. */
-      for (let i = 0; i < NODES.length - 1; i++) {
-        if (i > st - 1) break;
-        const isLeg = i === st - 1;
+         leg is drawn only as far as `trail` currently reaches. */
+      for (let i = 0; i <= leg && i < NODES.length - 1; i++) {
+        const isLeg = i === leg;
         const p = isLeg ? trail : 1;
-        if (p <= 0) continue;
+        if (p <= 0.001) continue;
 
         const x1 = px(i);
         const y1 = py(i);
@@ -112,7 +111,7 @@ export default function ProcessDiagram({
         }
         ctx.stroke();
 
-        // The head of the travelling trail, so the motion has a leading edge.
+        // The leading edge of the line, travelling either way.
         if (isLeg && p < 1) {
           const [hx, hy] = headOf(path, total * p);
           ctx.fillStyle = RED;
@@ -120,34 +119,31 @@ export default function ProcessDiagram({
         }
       }
 
-      /* Nodes. The origin holds the active styling until the destination has
-         actually been reached, so the two never both read as "current". */
+      /* Nodes. Exactly one node is "current", and the two ends of the active
+         leg hand that state to each other as `dot` travels — so it is never
+         claimed by both, in either direction. */
       NODES.forEach((_, i) => {
         const x = px(i);
         const y = py(i);
+        const presence = i === leg + 1 ? dot : i === leg ? 1 - dot : 0;
 
-        if (i === st) {
-          if (dot <= 0.001) return;
-          drawActive(ctx, x, y, dot, t, w, i, dot >= 0.999);
-        } else if (i === st - 1) {
-          // Hands its state over to the destination as the dot lands.
-          const handover = 1 - dot;
-          ctx.fillStyle = RED;
-          ctx.globalAlpha = handover;
-          ctx.fillRect(x - 5, y - 5, 10, 10);
+        if (presence > 0.001) {
+          drawActive(ctx, x, y, presence, t, w, i, presence >= 0.999);
+        }
+
+        if (presence < 0.999) {
+          ctx.globalAlpha = 1 - presence;
+          if (i <= leg) {
+            ctx.strokeStyle = `${PAPER}0.5)`;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - 4.5, y - 4.5, 9, 9);
+          } else {
+            ctx.fillStyle = `${PAPER}0.22)`;
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
           ctx.globalAlpha = 1;
-          ctx.strokeStyle = `${PAPER}${0.5 * dot})`;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x - 4.5, y - 4.5, 9, 9);
-        } else if (i < st) {
-          ctx.strokeStyle = `${PAPER}0.5)`;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x - 4.5, y - 4.5, 9, 9);
-        } else {
-          ctx.fillStyle = `${PAPER}0.22)`;
-          ctx.beginPath();
-          ctx.arc(x, y, 2, 0, Math.PI * 2);
-          ctx.fill();
         }
       });
     },
@@ -184,7 +180,7 @@ function drawActive(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  dot: number,
+  presence: number,
   t: number,
   w: number,
   i: number,
@@ -201,13 +197,13 @@ function drawActive(
     ctx.globalAlpha = 1;
   }
 
-  const size = 10 * dot;
+  const size = 10 * presence;
   ctx.fillStyle = RED;
   ctx.fillRect(x - size / 2, y - size / 2, size, size);
 
-  if (dot > 0.6) {
+  if (presence > 0.6) {
     ctx.font = `9px ${monoFont()}`;
-    ctx.fillStyle = `${PAPER}${0.6 * ((dot - 0.6) / 0.4)})`;
+    ctx.fillStyle = `${PAPER}${0.6 * ((presence - 0.6) / 0.4)})`;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = x > w * 0.8 ? 'right' : 'left';
     const pad = x > w * 0.8 ? -12 : 12;

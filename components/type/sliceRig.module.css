@@ -1,0 +1,40 @@
+/* The host keeps whatever type styling the section gave it; every band is a
+   full copy of the word, clipped to one horizontal strip, so the face, size,
+   tracking and stroke are inherited rather than restated. */
+.rig {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: top;
+  /* Sections here set leading below 1, so glyphs sit slightly outside the line
+     box. Bands are clipped to their own box, so each one is padded past the
+     type and offset back — otherwise the outermost strips shave the caps and
+     the descenders. */
+  --bleed: 0.16em;
+}
+
+/* Holds the box open in normal flow. Nothing else here is in the flow, so
+   without it the host would collapse to zero. */
+.sizer {
+  display: block;
+  visibility: hidden;
+}
+
+.slice {
+  position: absolute;
+  top: calc(var(--bleed) * -1);
+  padding-block: var(--bleed);
+  display: block;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* Bands anchor to the edge the word is set from, so a longer or shorter
+   replacement grows away from the reader's eye rather than under it. */
+.rig[data-align='left'] .slice {
+  left: 0;
+}
+
+.rig[data-align='right'] .slice {
+  right: 0;
+}

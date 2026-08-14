@@ -107,11 +107,10 @@
 
 /* --- Meta ----------------------------------------------------------------- */
 
-/* Absolute so the headline can hold the optical centre of the frame, and
-   inset from the left to clear the fixed version switch. */
+/* Absolute so the headline can hold the optical centre of the frame. */
 .meta {
   position: absolute;
-  left: calc(var(--edge) + 12.5rem);
+  left: var(--edge);
   right: var(--edge);
   bottom: calc(var(--edge) * 1.35);
   z-index: 2;
@@ -161,8 +160,7 @@
     width: 1.35em;
   }
   .meta {
-    left: var(--edge);
-    bottom: calc(var(--edge) * 4);
+    bottom: calc(var(--edge) * 1.6);
     flex-direction: column;
     gap: 0.4rem;
   }

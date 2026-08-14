@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useGsap } from '@/lib/hooks';
 import ProcessDiagram, { type DiagramDriver } from '../canvas/ProcessDiagram';
+import { createSliceRig } from '../type/sliceRig';
 import Marker from '../ui/Marker';
 import s from './Process.module.css';
 
@@ -16,158 +17,90 @@ const STAGES = [
   { word: 'Release', note: 'Ship it, then watch it.' },
 ];
 
-/** Small, deterministic per-character angles — choreographed, not random. */
-const tilt = (i: number) => ((i % 3) - 1) * 5;
-
 export default function Process() {
   const root = useRef<HTMLElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const layerA = useRef<HTMLSpanElement>(null);
-  const layerB = useRef<HTMLSpanElement>(null);
+  const wordRef = useRef<HTMLSpanElement>(null);
   const noteRef = useRef<HTMLSpanElement>(null);
   const ruleRef = useRef<HTMLDivElement>(null);
   const idxRef = useRef(0);
-  const frontRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
-  const driver = useRef<DiagramDriver>({ trail: 1, dot: 1 });
+  /* Stage 00 is already arrived at: no leg drawn, its node fully present. */
+  const driver = useRef<DiagramDriver>({ leg: -1, trail: 1, dot: 1 });
   const [stage, setStage] = useState(0);
 
   useGsap(
     () => {
-      const a = layerA.current;
-      const b = layerB.current;
-      if (!a || !b) return;
-
-      const paint = (el: HTMLElement, text: string) => {
-        el.replaceChildren(
-          ...[...text].map((ch) => {
-            const span = document.createElement('span');
-            span.className = s.char;
-            span.textContent = ch;
-            return span;
-          })
-        );
-        return Array.from(el.children) as HTMLElement[];
-      };
+      const host = wordRef.current;
+      if (!host) return;
 
       // Seeded imperatively — React must not own text GSAP rewrites.
-      paint(a, STAGES[0].word);
-      gsap.set(a, { opacity: 1 });
-      gsap.set(b, { opacity: 0 });
+      const rig = createSliceRig(host, { align: 'left' });
+      rig.set(STAGES[0].word);
       if (noteRef.current) noteRef.current.textContent = STAGES[0].note;
 
       const mm = gsap.matchMedia();
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         /**
-         * The word does not change — it rearranges. Outgoing characters
-         * separate and drift apart; each incoming character is placed at the
-         * position an outgoing character just occupied and travels from there
-         * into its own slot. The eye follows individual letters across, so it
-         * reads as one typographic object reforming.
+         * The stage name is re-cut rather than replaced: it breaks into
+         * horizontal bands that shear off, and the next word arrives through
+         * the gaps from the other side. The diagram moves on the same
+         * timeline, and moves in whichever direction the reader is going.
          */
         const go = (next: number) => {
           const dir = next > idxRef.current ? 1 : -1;
+          const prev = idxRef.current;
           idxRef.current = next;
           setStage(next);
-
-          const from = frontRef.current === 0 ? a : b;
-          const to = frontRef.current === 0 ? b : a;
-          frontRef.current = 1 - frontRef.current;
-
-          const outChars = Array.from(from.children) as HTMLElement[];
-          const outX = outChars.map((c) => c.offsetLeft);
-
-          const inChars = paint(to, STAGES[next].word);
-          gsap.set(to, { opacity: 1 });
-          const inX = inChars.map((c) => c.offsetLeft);
-
-          // Each new letter starts where an old letter was standing.
-          inChars.forEach((c, i) => {
-            const src = outX.length ? outX[i % outX.length] : inX[i];
-            gsap.set(c, {
-              x: src - inX[i],
-              y: 18 * dir,
-              rotate: -tilt(i),
-              opacity: 0,
-              transformOrigin: '50% 50%',
-            });
-          });
-
-          const mid = (outChars.length - 1) / 2;
 
           tlRef.current?.kill();
           const tl = gsap.timeline();
           tlRef.current = tl;
 
-          tl
-            /* --- the word comes apart -------------------------------------- */
-            .to(
-              outChars,
-              {
-                x: (i: number) => (i - mid) * 40,
-                y: -16 * dir,
-                rotate: (i: number) => tilt(i),
-                opacity: 0,
-                duration: 0.75,
-                ease: 'power2.in',
-                stagger: { each: 0.028, from: 'center' },
-              },
-              0
-            )
-            .to(from, { letterSpacing: '0.04em', duration: 0.75, ease: 'power2.in' }, 0)
-            .set(from, { opacity: 0 }, 0.76)
+          rig.swap(STAGES[next].word, tl, 0);
 
-            /* --- and reassembles as the next one --------------------------- */
-            .fromTo(
-              to,
-              { letterSpacing: '0.06em' },
-              { letterSpacing: '-0.055em', duration: 1.25, ease: 'expo.out' },
-              0.3
-            )
-            .to(
-              inChars,
-              {
-                x: 0,
-                y: 0,
-                rotate: 0,
-                opacity: 1,
-                duration: 1.2,
-                ease: 'expo.out',
-                stagger: { each: 0.038, from: 'start' },
-              },
-              0.3
-            )
-
-            /* The rule breathes with the word — it never resets to zero. */
-            .to(ruleRef.current, { scaleX: 0.28, duration: 0.5, ease: 'power2.in' }, 0)
+          /* The rule breathes with the word — it never resets to zero. */
+          tl.to(ruleRef.current, { scaleX: 0.28, duration: 0.5, ease: 'power2.in' }, 0)
             .to(ruleRef.current, { scaleX: 1, duration: 1.05, ease: 'expo.out' }, 0.5)
 
             /* --- one line of copy ------------------------------------------ */
             .to(noteRef.current, { opacity: 0, y: -8 * dir, duration: 0.35, ease: 'power2.in' }, 0)
             .add(() => {
               if (noteRef.current) noteRef.current.textContent = STAGES[next].note;
-            })
+            }, 0.4)
             .fromTo(
               noteRef.current,
               { opacity: 0, y: 10 * dir },
               { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' },
               0.6
-            )
+            );
 
-            /* --- trail travels, and only then does the dot arrive ---------- */
-            .fromTo(
-              driver.current,
-              { trail: 0 },
-              { trail: 1, duration: 0.95, ease: 'power2.inOut' },
-              0.12
-            )
-            .fromTo(
-              driver.current,
-              { dot: 0 },
+          /* The driver is set synchronously, before any tween renders: a
+             delayed `fromTo` would leave the old leg drawn for a frame. */
+          const d = driver.current;
+          if (dir > 0) {
+            // Forward: travel the new leg, and only then let the dot arrive.
+            d.leg = prev;
+            d.trail = 0;
+            d.dot = 0;
+            tl.to(d, { trail: 1, duration: 0.95, ease: 'power2.inOut' }, 0.12).to(
+              d,
               { dot: 1, duration: 0.5, ease: 'back.out(2.2)' },
               1.07
             );
+          } else {
+            /* Backward: the same leg withdraws the way it came. The dot lets
+               go first, so the line is never left hanging off a live node. */
+            d.leg = next;
+            d.trail = 1;
+            d.dot = 1;
+            tl.to(d, { dot: 0, duration: 0.45, ease: 'power2.in' }, 0.05).to(
+              d,
+              { trail: 0, duration: 0.95, ease: 'power2.inOut' },
+              0.32
+            );
+          }
         };
 
         /* Progress only. The stage is held by native sticky. */
@@ -191,7 +124,10 @@ export default function Process() {
         };
       });
 
-      return () => mm.revert();
+      return () => {
+        mm.revert();
+        rig.destroy();
+      };
     },
     root,
     []
@@ -219,7 +155,7 @@ export default function Process() {
               </span>
             </div>
             <div className={s.diagram}>
-              <ProcessDiagram stage={stage} driver={driver} />
+              <ProcessDiagram driver={driver} />
             </div>
           </div>
 
@@ -232,11 +168,8 @@ export default function Process() {
                 <span className="faint">{String(STAGES.length).padStart(2, '0')}</span>
               </div>
 
-              {/* Two layers, no mask. Characters travel between words, so
-                  nothing here may clip a glyph. */}
               <div className={s.wordStage}>
-                <span className={s.wordLayer} ref={layerA} />
-                <span className={s.wordLayer} ref={layerB} />
+                <span ref={wordRef} />
               </div>
 
               <div className={s.rule} ref={ruleRef} />

@@ -15,8 +15,8 @@ the whole system:
 
 - **Actual size** → the page is framed like a print production sheet: registration
   crosses, a scroll rule, live viewport and clock readouts in the colophon.
-- **The ratio** → the module is a square. The service preview plate, the hero
-  point cloud's frame and the grid overlay all resolve to 1:1.
+- **The ratio** → the module is a square. The service preview plate, the hero's
+  media chips and the grid overlay all resolve to 1:1.
 - **Correspondence** → the colon is the brand's operator. It stays red wherever
   it separates two things, and section 02 reads the name as an argument:
   Idea : Form, Noise : Signal.
@@ -24,37 +24,18 @@ the whole system:
 Nothing on the site claims clients, projects, awards or metrics, because there
 aren't any yet. The proof is the site itself and the six live experiments.
 
-## Two heroes
+## The hero
 
-The site ships two hero versions. The control at the bottom-left switches
-between them and the choice persists in `localStorage`.
+`HeroStatement.tsx` — a light sheet where the sentence *is* the layout: media
+sits inside the line rather than beside it, so the type and the work occupy
+the same measure. Every chip is a live generative sketch, not a placeholder
+image, and the arrow is drawn rather than faded in.
 
-**Aperture** (`HeroAperture.tsx`) — six framed cards over a dark sheet, each a
-window onto the *same* giant 1:1 mark drifting behind the page. The mark is
-never shown whole; the reader assembles it from fragments. One card resolves
-it as a Bayer dither, so the same object is read at two resolutions at once.
-Mechanically it is one full-bleed canvas with `clip-path: path()` set to the
-union of the card rectangles, plus a second canvas clipped to the dithered
-card — so the artwork stays perfectly continuous across every window with no
-per-card offset maths. Three copies of the mark interlock at different scales,
-because a single 1:1 is mostly negative space and the windows would land on
-emptiness.
-
-**Statement** (`HeroStatement.tsx`) — a light sheet where the sentence *is*
-the layout: media sits inside the line rather than beside it. Every chip is a
-live generative sketch, not a placeholder image.
-
-`components/hero/system.ts` holds the mark geometry as pure data in module
-units, so proportions survive any viewport and only the module size `S`
-changes. Both heroes draw from it, which is what keeps them the same identity
-rather than two unrelated designs.
-
-**Entrances only run on first reveal.** Both heroes take an `intro` prop; when
-a hero is swapped in mid-session it lands at rest and the sheet fades instead.
-The entrance exists to chain off the loading curtain, and on the swap path
-there is no curtain — the timeline also proved unreliable there, and a
-`fromTo` writes its from-state the moment it is built, which stranded the
-chips invisible.
+The chips lean toward the cursor. That offset is clamped to the section's own
+box and switched off by an IntersectionObserver when the hero leaves the
+viewport — unclamped, the pointer sitting far below the section drove the
+chips right out of the composition, which the reader then found scattered on
+scrolling back up.
 
 ## Stack
 
@@ -79,7 +60,8 @@ components/
   Preloader.tsx        load sequence and curtain
   Nav.tsx              section tracking, surface-aware bar, overlay menu
   sections/            01 Hero … 07 Footer
-  hero/                the twelve-module identity system
+  hero/                the headline composition
+  type/                sliceRig — the banded word swap
   canvas/              service plates, process diagram, experiment host
 lib/
   experiments.ts       the six generative sketches
@@ -120,11 +102,28 @@ Then verify a wheel over it still moves the page — and watch for a later
 `position:` declaration in the same rule silently overriding the sticky, which
 is exactly how the Studio section lost it once.
 
-**Transitions compress, they do not cut.** Where a word is replaced (How We
-Think, the Studio pair), the width axis and tracking travel continuously across
-the whole event and the text is exchanged at the pinch, while opacity is zero.
-The reader sees one object reshaping. Avoid mask-and-slide swaps here — they
-read as two words, which is what this replaced.
+**Words are re-cut, not replaced.** Both word sequences — the Studio pair and
+the How We Think stage names — run through `components/type/sliceRig.ts`. The
+word is cut into seven horizontal bands; the outgoing bands shear off in
+alternating directions and the incoming bands arrive through them from the
+opposite side, so for about a third of a second both words share the line,
+interleaved strip by strip.
+
+Three things make it work:
+
+- **The rig never styles type.** Every band is a full copy of the word inside
+  the host element, clipped to its strip, so face, size, tracking, colour and
+  `-webkit-text-stroke` are inherited from whatever the section already set.
+- **Throw is measured against the type size, not the word's width.** A short
+  word has to shear as hard as a long one or it reads as a wobble.
+- **Bands carry a padded bleed** (`--bleed`, offset back out by `top`). These
+  sections set leading below 1, so glyphs sit slightly outside the line box
+  and the outermost strips would otherwise shave the caps.
+
+The rig appends to a timeline the caller owns, rather than running its own, so
+the rule, the copy and the diagram stay in step with the word. Earlier
+versions compressed the width axis instead; that squeezed the letterforms
+sideways into each other and was rejected.
 
 **Sections are numbered.** Every section renders a `<Marker>`, which also
 supplies the section's `<h2>` — the oversized statements are content, not
@@ -133,21 +132,30 @@ headings.
 **Canvas sketches share one loop.** `useSketch` registers a draw callback on
 `gsap.ticker`, gated by an IntersectionObserver, and hands the sketch **time in
 milliseconds** (the ticker itself reports seconds). Experiment tiles run capped
-at 30fps; the hero's WebGL loop pauses when the hero leaves the viewport.
+at 30fps, and the hero's chips stop drawing once the hero is off screen.
 
 **Text GSAP writes is not owned by React.** Nodes animated with ScrambleText or
-swapped imperatively (`Process`, `PointOfView`, the cursor label, the readouts)
+swapped imperatively (`Process`, `Ratio`, the cursor label, the readouts)
 are rendered empty and seeded in an effect. Letting React own that text breaks
 reconciliation when the tree re-renders.
 
 **The process diagram is driven, not self-animating.** `ProcessDiagram` reads a
-`driver` ref (`{ trail, dot }`) that the section's timeline writes to, so the
-trail finishes travelling before the destination node scales in. They were two
-independent tweens once, and the dot consistently arrived first.
+`driver` ref (`{ leg, trail, dot }`) that the section's timeline writes to, so
+the trail finishes travelling before the destination node scales in. They were
+two independent tweens once, and the dot consistently arrived first.
+
+`leg` is the connection being drawn *or withdrawn*. Scrolling back sets it to
+the leg the reader arrived on and sends `trail` from 1 to 0, so the line
+retreats the way it came instead of vanishing and redrawing itself forwards.
+The two ends of that leg hand "current" to each other through `dot` in both
+directions, so exactly one node is ever live. Write all three fields
+synchronously before adding the tweens: a delayed `fromTo` leaves the old leg
+drawn for a frame, which flashes.
 
 **Tight leading plus `overflow: hidden` crops descenders.** The Studio pair lost
 the tail of its "Q" that way. Where a mask is not doing real work, drop it and
-carry the transition on transform and opacity instead.
+carry the transition on transform and opacity instead — and where clipping is
+the effect, as in the slice rig, give it a bleed.
 
 **Reduced motion is a layout, not a switch.** Sections with pinned sequences
 also render a static editorial version; CSS picks one and `gsap.matchMedia`
@@ -161,8 +169,7 @@ remove.
 |---|---|
 | `G` | toggle the layout grid |
 | `Esc` | close the menu |
-| Hover a discipline | plate settles on that row, alternating left/right |
-| Bottom-left control | switch hero version (persisted) |
+| Hover a discipline | live preview plate trails the cursor |
 | Click an experiment | reseed the composition |
 | Tab | full keyboard path, visible focus, skip link first |
 # oneistoone

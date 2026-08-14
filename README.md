@@ -24,11 +24,27 @@ the whole system:
 Nothing on the site claims clients, projects, awards or metrics, because there
 aren't any yet. The proof is the site itself and the six live experiments.
 
+## The hero
+
+Twelve rectangles and nothing else. They assemble into a constructed `1:1`,
+then — scrubbed by scroll — travel and stretch into the twelve column
+positions the rest of the page is set on, and finally into a registration
+frame that holds the closing statement. Same twelve objects in every state,
+interpolating; there is no crossfade between forms.
+
+`components/hero/system.ts` holds the geometry as pure data in module units,
+so proportions survive any viewport and only the module size `S` changes.
+`HeroSystem.tsx` owns a single ticker that is the *only* writer of those
+transforms — scroll progress, entrance and cursor drift are all composited
+in one place, which is why nothing fights anything else.
+
 ## Stack
 
-Next.js 15 (App Router) · React 19 · Three.js · GSAP (ScrollTrigger, SplitText,
-ScrambleText) · Lenis. No UI framework — the CSS is hand-written, because the
-layout is art-directed rather than composed from utilities.
+Next.js 15 (App Router) · React 19 · GSAP (ScrollTrigger, ScrambleText) ·
+Lenis. No UI framework — the CSS is hand-written, because the layout is
+art-directed rather than composed from utilities. No WebGL: the hero concept
+did not need it, and dropping Three.js took first-load JS from 301 kB to
+180 kB.
 
 ## Structure
 
@@ -45,7 +61,7 @@ components/
   Preloader.tsx        load sequence and curtain
   Nav.tsx              section tracking, surface-aware bar, overlay menu
   sections/            01 Hero … 07 Footer
-  webgl/               hero survey field (point terrain)
+  hero/                the twelve-module identity system
   canvas/              service plates, process diagram, experiment host
 lib/
   experiments.ts       the six generative sketches
@@ -65,13 +81,19 @@ inside the mark.
 re-binds `--bg`/`--fg`/`--line`. The nav and cursor read the same attribute so
 they invert with the page instead of guessing.
 
-**Nothing may take the wheel.** The Playground is ordinary vertical flow: no
-pin, no horizontal track, no nested scroll container, and no
-`data-lenis-prevent` anywhere in the app. That attribute tells Lenis to ignore
-wheel events originating inside an element — on a container that cannot itself
-scroll, the page simply freezes under the pointer. The cards' sideways
-character is a transform-only parallax on scroll, which cannot capture input.
-If you add a scrolling region, verify a wheel over it still moves the page.
+**Nothing may take the wheel.** There is one scrolling system: Lenis drives
+the window, ScrollTrigger only *observes* it, and sections that need to hold
+are held by native `position: sticky`. There are **no ScrollTrigger pins**
+anywhere — a pin fixes the element and injects a spacer mid-scroll, which is
+what made the Studio and Playground sections feel stuck. There is likewise no
+`data-lenis-prevent` and no nested scroll container: that attribute tells
+Lenis to ignore wheel events from inside an element, and on a container that
+cannot itself scroll the page simply freezes under the pointer.
+
+If you add a held section, use sticky and give ScrollTrigger `onUpdate` only.
+Then verify a wheel over it still moves the page — and watch for a later
+`position:` declaration in the same rule silently overriding the sticky, which
+is exactly how the Studio section lost it once.
 
 **Transitions compress, they do not cut.** Where a word is replaced (How We
 Think, the Studio pair), the width axis and tracking travel continuously across

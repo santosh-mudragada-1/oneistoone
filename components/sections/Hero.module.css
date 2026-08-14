@@ -1,77 +1,31 @@
+/* The hero is a tall section holding a natively-sticky stage. No ScrollTrigger
+   pin anywhere: the browser does the holding, so the wheel is never
+   intercepted and there is no pin-spacer being inserted into the DOM. */
+
 .hero {
   position: relative;
-  min-height: 100vh;
-  min-height: 100svh;
+  /* Long enough that each form is held and read before the next begins. */
+  height: 360vh;
+  padding: 0;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  /* Clipping the stage, not an ancestor — sticky still resolves. */
+  overflow: hidden;
+  padding: clamp(5.5rem, 11vh, 8rem) var(--edge) clamp(1.5rem, 4vh, 2.5rem);
   display: flex;
   flex-direction: column;
-  padding-block: clamp(5.5rem, 11vh, 8rem) clamp(1.5rem, 4vh, 2.5rem);
-  overflow: hidden;
-}
-
-/* The survey field sits right and low, bleeding off both edges so the frame
-   crops it rather than containing it. */
-.field {
-  position: absolute;
-  top: 14%;
-  right: -8%;
-  bottom: -12%;
-  left: 28%;
-}
-
-.scrim {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 62%;
-  background: linear-gradient(to top, var(--ink) 6%, rgba(10, 10, 10, 0.45) 52%, transparent);
-  pointer-events: none;
-}
-
-/* --- Construction lines --------------------------------------------------- */
-
-.gridLine {
-  position: absolute;
-  background: var(--line);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.gridV {
-  top: 0;
-  bottom: 0;
-  left: 66%;
-  width: 1px;
-  transform: scaleY(0);
-  transform-origin: 50% 0;
-}
-
-.ruleTop {
-  position: relative;
-  z-index: var(--z-content);
-  height: 1px;
-  background: var(--line);
-  margin-top: clamp(0.9rem, 2.4vh, 1.6rem);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-
-.ticks {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 7px;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--line) 0 1px,
-    transparent 1px 64px
-  );
 }
 
 /* --- Metadata ------------------------------------------------------------- */
 
 .top {
   position: relative;
-  z-index: var(--z-content);
+  z-index: 3;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -117,124 +71,72 @@
   }
 }
 
-/* --- Lockup --------------------------------------------------------------- */
+/* --- Typography track ----------------------------------------------------- */
 
-.lockup {
-  position: relative;
-  z-index: var(--z-content);
-  margin-top: auto;
-  padding-bottom: clamp(1rem, 3vh, 2rem);
+.type {
+  position: absolute;
+  inset: clamp(5.5rem, 11vh, 8rem) var(--edge) clamp(4.5rem, 10vh, 6rem);
+  z-index: 3;
+  pointer-events: none;
 }
 
-.mark {
+/* Sits under the mark. Its two words draw apart as the mark opens into the
+   grid, so the label reads as part of the same movement. */
+.label {
+  position: absolute;
+  left: 5%;
+  bottom: 8%;
   display: flex;
-  align-items: flex-end;
-  font-family: var(--f-logo);
-  font-weight: 700;
-  /* The wordmark is the composition. White only — no accent inside it. */
-  font-size: clamp(5.5rem, 34vw, 30rem);
-  line-height: 0.8;
-  letter-spacing: -0.045em;
-  color: var(--white);
-  margin: 0;
-}
-
-/* Per-glyph masks, sized with headroom so no part of a numeral or the colon
-   can be cropped at any point in the reveal. */
-.glyph {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.05em;
-  margin-bottom: -0.05em;
-}
-
-.glyph > span {
-  display: block;
-  will-change: transform;
-}
-
-.sub {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(0.75rem, 2vw, 1.75rem);
-  margin-top: clamp(0.6rem, 1.8vh, 1.4rem);
-  /* Sits under the colon, not the first numeral — the line is offset against
-     the mark rather than centred on it. */
-  margin-left: 0.34em;
-  overflow: hidden;
-}
-
-.subInner {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(0.6rem, 1.6vw, 1.4rem);
+  gap: clamp(0.75rem, 2vw, 2rem);
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: clamp(0.9rem, 2.6vw, 2.15rem);
-  line-height: 1.1;
-  letter-spacing: 0.26em;
+  font-size: clamp(0.8rem, 2vw, 1.7rem);
+  line-height: 1;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
+  color: var(--fg);
   white-space: nowrap;
+}
+
+.labelWord {
+  display: block;
   will-change: transform;
 }
 
-.subOutline {
+.labelWord:last-child {
   color: transparent;
   -webkit-text-stroke: 1px var(--fg);
 }
 
-/* --- Red marker ----------------------------------------------------------- */
-
-/* A register mark on the construction line, labelled so it reads as a survey
-   point rather than a stray dot. */
-.marker {
+/* Lives inside the frame the modules build in the final state. */
+.statement {
   position: absolute;
-  z-index: 2;
-  top: 30%;
-  left: 66%;
-  width: 22px;
-  height: 22px;
-  transform: translate(-50%, -50%) scale(0);
-  pointer-events: none;
-}
-
-.markerLabel {
-  position: absolute;
-  left: calc(66% + 20px);
-  top: 30%;
-  z-index: 2;
-  transform: translateY(-50%);
-  color: var(--fg-faint);
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.markerLabel b {
-  color: var(--red);
-  font-weight: 400;
-}
-
-.marker::before,
-.marker::after {
-  content: '';
-  position: absolute;
-  background: var(--red);
-}
-
-.marker::before {
-  left: 50%;
-  top: 0;
-  width: 1px;
-  height: 100%;
-  transform: translateX(-50%);
-}
-
-.marker::after {
+  left: 12%;
   top: 50%;
-  left: 0;
-  height: 1px;
-  width: 100%;
   transform: translateY(-50%);
+  opacity: 0;
+}
+
+.line {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 7.4vw, 7.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--fg);
+  will-change: transform;
+}
+
+.lineB {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fg);
+  margin-left: 8%;
+}
+
+.stop {
+  color: var(--red);
 }
 
 /* --- Scroll cue ----------------------------------------------------------- */
@@ -244,7 +146,7 @@
   left: calc(var(--edge) * 0.42);
   top: 50%;
   transform: translateY(-50%);
-  z-index: var(--z-content);
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -287,7 +189,8 @@
 
 .bar {
   position: relative;
-  z-index: var(--z-content);
+  z-index: 3;
+  margin-top: auto;
   display: flex;
   align-items: baseline;
   gap: clamp(1rem, 4vw, 3rem);
@@ -306,10 +209,22 @@
   transform-origin: 0 50%;
 }
 
-.claim {
-  color: var(--fg);
-  flex: none;
+.form {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
   white-space: nowrap;
+}
+
+.form b {
+  color: var(--red);
+  font-weight: 400;
+}
+
+.formName {
+  color: var(--fg);
+  min-width: 6ch;
+  display: inline-block;
 }
 
 .coord {
@@ -325,52 +240,31 @@
   font-weight: 400;
 }
 
-@media (max-width: 900px) {
-  /* Portrait: the field becomes a wide central band the lockup sits into,
-     rather than a strip below it with dead space above. */
-  .field {
-    top: 20%;
-    left: -20%;
-    right: -20%;
-    bottom: 6%;
-    height: auto;
-  }
-  .gridV {
+@media (max-width: 860px) {
+  .scrollCue {
     display: none;
   }
-  .marker {
-    left: 82%;
-    top: 22%;
+  .label {
+    left: 5%;
+    bottom: 4%;
+    letter-spacing: 0.22em;
   }
-  .markerLabel {
-    display: none;
-  }
-  .mark {
-    font-size: clamp(4.5rem, 52vw, 30rem);
-  }
-  .scrim {
-    height: 44%;
-  }
-  .sub {
-    margin-left: 0.1em;
-  }
-  .subInner {
-    letter-spacing: 0.2em;
-    font-size: clamp(0.75rem, 3.4vw, 1.5rem);
-  }
-  .scrollCue,
-  .claim {
-    display: none;
+  .statement {
+    left: 10%;
   }
   .coord {
     margin-left: 0;
+  }
+  .bar {
     justify-content: space-between;
-    width: 100%;
   }
 }
 
 @media (max-width: 520px) {
   .metaRight {
+    display: none;
+  }
+  .coord span:last-child {
     display: none;
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { gsap } from '@/lib/gsap';
+import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useGsap } from '@/lib/hooks';
 import Marker from '../ui/Marker';
 import s from './PointOfView.module.css';
@@ -14,13 +14,26 @@ const PAIRS = [
   { a: 'Instinct', b: 'Evidence', note: 'Both, or neither.' },
 ];
 
+/* Where the background geometry sits for each pair. Nothing here should be
+   noticed directly — it only has to keep the field from feeling static. */
+const ATMOS = [
+  { num: '12%', a: '28%', b: '74%', v: '17%' },
+  { num: '-2%', a: '37%', b: '63%', v: '43%' },
+  { num: '9%', a: '21%', b: '81%', v: '67%' },
+  { num: '-8%', a: '45%', b: '57%', v: '86%' },
+];
+
 export default function PointOfView() {
   const root = useRef<HTMLElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const aRef = useRef<HTMLSpanElement>(null);
   const bRef = useRef<HTMLSpanElement>(null);
   const noteRef = useRef<HTMLSpanElement>(null);
   const colonRef = useRef<HTMLSpanElement>(null);
+  const numRef = useRef<HTMLSpanElement>(null);
+  const lineA = useRef<HTMLSpanElement>(null);
+  const lineB = useRef<HTMLSpanElement>(null);
+  const lineV = useRef<HTMLSpanElement>(null);
   const indexRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const [active, setActive] = useState(0);
@@ -31,6 +44,7 @@ export default function PointOfView() {
       if (aRef.current) aRef.current.textContent = PAIRS[0].a;
       if (bRef.current) bRef.current.textContent = PAIRS[0].b;
       if (noteRef.current) noteRef.current.textContent = PAIRS[0].note;
+      if (numRef.current) numRef.current.textContent = '01';
 
       const mm = gsap.matchMedia();
 
@@ -56,6 +70,16 @@ export default function PointOfView() {
 
           if (!motion) return;
 
+          /* A drift slow enough that it registers as atmosphere rather than
+             as an animation running in the background. */
+          gsap.to(numRef.current, {
+            xPercent: 3,
+            duration: 26,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+          });
+
           /* One continuous compression and release. The width axis and
              tracking travel through the whole event, and the words are
              exchanged at the pinch — where opacity is already zero — so the
@@ -66,6 +90,7 @@ export default function PointOfView() {
             indexRef.current = next;
             setActive(next);
             const p = PAIRS[next];
+            const at = ATMOS[next];
             const words = [aRef.current, bRef.current];
             const axis = { wdth: 100, track: -5 };
 
@@ -95,6 +120,9 @@ export default function PointOfView() {
                 if (aRef.current) aRef.current.textContent = p.a;
                 if (bRef.current) bRef.current.textContent = p.b;
                 if (noteRef.current) noteRef.current.textContent = p.note;
+                if (numRef.current) {
+                  numRef.current.textContent = String(next + 1).padStart(2, '0');
+                }
               }, PINCH)
 
               .to(
@@ -109,27 +137,36 @@ export default function PointOfView() {
                 { opacity: 0, y: 12 * dir },
                 { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out' },
                 PINCH + 0.08
-              );
+              )
+
+              /* The background settles into its new arrangement over a longer
+                 span than the type, so it is always still moving when the
+                 words have already landed. */
+              .to(numRef.current, { top: at.num, duration: 2.4, ease: 'expo.out' }, 0)
+              .to(lineA.current, { top: at.a, duration: 2, ease: 'expo.inOut' }, 0.1)
+              .to(lineB.current, { top: at.b, duration: 2.2, ease: 'expo.inOut' }, 0.16)
+              .to(lineV.current, { left: at.v, duration: 2.4, ease: 'expo.inOut' }, 0.05);
           };
 
-          gsap.to(pinRef.current, {
-            ease: 'none',
-            scrollTrigger: {
-              trigger: pinRef.current,
-              start: 'top top',
-              end: `+=${PAIRS.length * 100}%`,
-              pin: true,
-              pinSpacing: true,
-              scrub: true,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                const next = Math.min(PAIRS.length - 1, Math.floor(self.progress * PAIRS.length));
-                if (next !== indexRef.current) swap(next);
-              },
+          /* Reports progress only — no pin, no scrub, nothing that can hold
+             the page. The sticky stage is what keeps the composition in
+             view. */
+          const st = ScrollTrigger.create({
+            trigger: wrapRef.current,
+            start: 'top top',
+            end: 'bottom bottom',
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const next = Math.min(
+                PAIRS.length - 1,
+                Math.floor(self.progress * PAIRS.length * 0.999)
+              );
+              if (next !== indexRef.current) swap(next);
             },
           });
 
           return () => {
+            st.kill();
             tlRef.current?.kill();
           };
         }
@@ -168,8 +205,17 @@ export default function PointOfView() {
 
       <p className="sr-only">{PAIRS.map((p) => `${p.a} to ${p.b}. ${p.note}`).join(' ')}</p>
 
-      <div className={s.pinWrap} aria-hidden="true">
-        <div className={s.mapping} ref={pinRef}>
+      <div className={s.pinWrap} ref={wrapRef} aria-hidden="true">
+        <div className={s.mapping}>
+          {/* Atmosphere. Kept far below the threshold where it would compete
+              with the typography. */}
+          <div className={s.atmos}>
+            <span className={s.atmosNum} ref={numRef} />
+            <span className={s.atmosLine} ref={lineA} />
+            <span className={s.atmosLine} ref={lineB} />
+            <span className={s.atmosLineV} ref={lineV} />
+          </div>
+
           <div className={`${s.mapHead} mono`}>
             <span>The studio, in one ratio</span>
             <div className={s.modules}>

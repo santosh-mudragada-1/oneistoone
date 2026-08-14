@@ -40,25 +40,83 @@
 
 /* --- Mapping device ------------------------------------------------------ */
 
+/* Held by native CSS sticky rather than a ScrollTrigger pin. The browser does
+   the holding, so the wheel is never intercepted and no pin-spacer is inserted
+   into the DOM mid-scroll. ScrollTrigger only reports progress here. */
 .pinWrap {
   position: relative;
+  height: 420vh;
 }
 
 .mapping {
-  min-height: 100vh;
-  min-height: 100svh;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   /* Head to the top, pair on the centre line, foot to the bottom — the block
      frames the whole viewport instead of huddling in the middle. */
   justify-content: space-between;
   padding-block: clamp(5.5rem, 12vh, 8rem) clamp(1.5rem, 4vh, 2.5rem);
-  position: relative;
   border-top: 1px solid var(--line);
 }
 
 .pairRow {
   margin-block: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Atmosphere -----------------------------------------------------------
+   Deliberately at the edge of perception: the reader should register that
+   something is changing, never that an animation is playing. */
+
+.atmos {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.atmosNum {
+  position: absolute;
+  right: -2%;
+  top: 12%;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 42vw;
+  line-height: 0.74;
+  letter-spacing: -0.06em;
+  color: var(--fg);
+  opacity: 0.028;
+  will-change: transform;
+}
+
+.atmosLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--fg);
+  opacity: 0.07;
+}
+
+.atmosLineV {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--fg);
+  opacity: 0.055;
+}
+
+.mapHead,
+.mapFoot {
+  position: relative;
+  z-index: 1;
 }
 
 .mapHead {

@@ -36,19 +36,6 @@ export default function Cursor() {
     const ringX = gsap.quickTo(ring, 'x', { duration: slow, ease: 'power3.out' });
     const ringY = gsap.quickTo(ring, 'y', { duration: slow, ease: 'power3.out' });
 
-    let shown = false;
-    const onMove = (e: PointerEvent) => {
-      if (!shown) {
-        shown = true;
-        gsap.to(root, { opacity: 1, duration: 0.4 });
-        gsap.set([dot, ring], { x: e.clientX, y: e.clientY });
-      }
-      dotX(e.clientX);
-      dotY(e.clientY);
-      ringX(e.clientX);
-      ringY(e.clientY);
-    };
-
     let activeTarget: Element | null = null;
 
     const setActive = (text: string, fill: boolean) => {
@@ -66,15 +53,13 @@ export default function Cursor() {
       gsap.to(dot, { scale: 1, duration: 0.4, ease: 'power3.out' });
     };
 
-    const onOver = (e: Event) => {
-      const target = e.target as Element | null;
-      if (!target?.closest) return;
-
+    /** What is under the pointer right now decides the label and the surface. */
+    const resolve = (target: Element | null) => {
       // Track which surface the pointer is over so the cursor can invert.
-      const surfaceEl = target.closest<HTMLElement>('[data-surface]');
+      const surfaceEl = target?.closest?.<HTMLElement>('[data-surface]') ?? null;
       root.dataset.surface = surfaceEl?.dataset.surface ?? 'ink';
 
-      const hit = target.closest<HTMLElement>('[data-cursor]');
+      const hit = target?.closest?.<HTMLElement>('[data-cursor]') ?? null;
       if (hit === activeTarget) return;
       activeTarget = hit;
 
@@ -85,20 +70,51 @@ export default function Cursor() {
       }
     };
 
+    let shown = false;
+    let px = -1;
+    let py = -1;
+
+    const onMove = (e: PointerEvent) => {
+      px = e.clientX;
+      py = e.clientY;
+      if (!shown) {
+        shown = true;
+        gsap.to(root, { opacity: 1, duration: 0.4 });
+        gsap.set([dot, ring], { x: e.clientX, y: e.clientY });
+      }
+      dotX(e.clientX);
+      dotY(e.clientY);
+      ringX(e.clientX);
+      ringY(e.clientY);
+      resolve(e.target as Element | null);
+    };
+
+    /* The page moves under a stationary pointer far more often than the
+       pointer moves over the page. Without re-testing on scroll, a label
+       picked up in one section stayed lit all the way down the document and
+       back — no pointer event ever fired to clear it. */
+    let queued = false;
+    const onScroll = () => {
+      if (queued || px < 0) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        resolve(document.elementFromPoint(px, py));
+      });
+    };
+
     const onLeaveWindow = () => gsap.to(root, { opacity: 0, duration: 0.3 });
     const onEnterWindow = () => shown && gsap.to(root, { opacity: 1, duration: 0.3 });
 
     window.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerover', onOver, { passive: true });
-    document.addEventListener('pointerout', onOver, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('mouseleave', onLeaveWindow);
     document.addEventListener('mouseenter', onEnterWindow);
 
     return () => {
       document.documentElement.classList.remove('has-custom-cursor');
       window.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerover', onOver);
-      document.removeEventListener('pointerout', onOver);
+      window.removeEventListener('scroll', onScroll);
       document.removeEventListener('mouseleave', onLeaveWindow);
       document.removeEventListener('mouseenter', onEnterWindow);
       gsap.killTweensOf([dot, ring, label, root]);

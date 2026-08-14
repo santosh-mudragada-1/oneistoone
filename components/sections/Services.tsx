@@ -7,22 +7,22 @@ import ServiceSketch from '../canvas/ServiceSketch';
 import Marker from '../ui/Marker';
 import s from './Services.module.css';
 
-/* One type scale for every discipline — none of them outranks another. The
-   composition varies through `indent`, which steps the list out and back in a
-   deliberate arc, and through the hover interaction. */
+/* One type scale for every discipline, all set from the same left edge —
+   none of them outranks another. Nothing in this list is a link: it is a list
+   of what the studio does, and the preview plate is the only thing that moves
+   in response to the reader. */
 const SERVICES = [
-  { word: 'Brand', desc: 'Identity systems, naming, art direction', indent: '0%' },
-  { word: 'Product', desc: 'Interfaces, design systems, prototypes', indent: '6%' },
-  { word: 'Digital', desc: 'Sites, editorial, real-time graphics', indent: '12%' },
-  { word: 'Motion', desc: 'Titles, loops, interaction choreography', indent: '6%' },
-  { word: 'Experimental', desc: 'Research, tools, work with no brief yet', indent: '0%' },
+  { word: 'Brand', desc: 'Identity systems, naming, art direction' },
+  { word: 'Product', desc: 'Interfaces, design systems, prototypes' },
+  { word: 'Digital', desc: 'Sites, editorial, real-time graphics' },
+  { word: 'Motion', desc: 'Titles, loops, interaction choreography' },
+  { word: 'Experimental', desc: 'Research, tools, work with no brief yet' },
 ];
 
 export default function Services() {
   const root = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<number | null>(null);
-  const [inline, setInline] = useState(false);
   const coarse = useIsCoarse();
   const reduced = useReducedMotion();
 
@@ -70,19 +70,14 @@ export default function Services() {
   useEffect(() => {
     const panel = panelRef.current;
     if (!panel || coarse) return;
-    const show = active !== null && !inline;
+    const show = active !== null;
     gsap.to(panel, {
       opacity: show ? 1 : 0,
       scale: show ? 1 : 0.85,
       duration: reduced ? 0.001 : 0.55,
       ease: 'expo.out',
     });
-  }, [active, inline, coarse, reduced]);
-
-  const open = (i: number, asInline: boolean) => {
-    setActive(i);
-    setInline(asInline);
-  };
+  }, [active, coarse, reduced]);
 
   return (
     <section
@@ -94,11 +89,14 @@ export default function Services() {
     >
       <Marker index="03" title="What We Do" meta="Five disciplines, one standard" />
 
-      <div className={s.head}>
-        <span className={`${s.hint} mono`}>
-          {coarse ? 'Tap a discipline' : 'Hover a discipline'} <i>→</i>
-        </span>
-      </div>
+      {/* Only worth saying where there is a pointer to hover with. */}
+      {!coarse ? (
+        <div className={s.head}>
+          <span className={`${s.hint} mono`}>
+            Hover a discipline <i>→</i>
+          </span>
+        </div>
+      ) : null}
 
       <ul
         className={s.list}
@@ -106,42 +104,28 @@ export default function Services() {
         onPointerLeave={() => !coarse && setActive(null)}
       >
         {SERVICES.map((item, i) => (
-          <li className={s.row} key={item.word} data-active={active === i}>
-            <button
-              type="button"
-              className={s.trigger}
-              style={{ '--indent': item.indent } as React.CSSProperties}
-              onPointerEnter={() => !coarse && open(i, false)}
-              onFocus={() => open(i, true)}
-              onBlur={() => setActive(null)}
-              onClick={() => (active === i && inline ? setActive(null) : open(i, true))}
-              aria-expanded={active === i}
-              data-cursor={coarse ? undefined : 'View'}
-            >
+          <li
+            className={s.row}
+            key={item.word}
+            data-active={active === i}
+            onPointerEnter={() => !coarse && setActive(i)}
+          >
+            <div className={s.trigger}>
               <span className={s.idx}>{String(i + 1).padStart(2, '0')}</span>
-              <span className={s.wordMask}>
-                <span className={s.word}>{item.word}</span>
-              </span>
-              <span className={s.tail}>
-                <span className={s.desc}>{item.desc}</span>
-                <span className={s.plus} aria-hidden="true">
-                  +
+              <div className={s.stack}>
+                <span className={s.wordMask}>
+                  <span className={s.word}>{item.word}</span>
                 </span>
-              </span>
-            </button>
-
-            {active === i && inline ? (
-              <div className={s.inline}>
-                <ServiceSketch mode={i} />
+                <span className={s.desc}>{item.desc}</span>
               </div>
-            ) : null}
+            </div>
           </li>
         ))}
       </ul>
 
       {!coarse ? (
         <div className={s.panel} ref={panelRef} aria-hidden="true">
-          <ServiceSketch mode={active ?? 0} running={active !== null && !inline} />
+          <ServiceSketch mode={active ?? 0} running={active !== null} />
           <div className={s.panelCap}>
             <span>
               <b>{String((active ?? 0) + 1).padStart(2, '0')}</b> {SERVICES[active ?? 0].word}

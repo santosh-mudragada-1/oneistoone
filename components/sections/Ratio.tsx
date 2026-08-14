@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useGsap } from '@/lib/hooks';
+import { createSequencer } from '@/lib/sequence';
 import { createSliceRig, type SliceRig } from '../type/sliceRig';
 import Marker from '../ui/Marker';
 import s from './Ratio.module.css';
@@ -35,7 +36,6 @@ export default function Ratio() {
   const lineA = useRef<HTMLSpanElement>(null);
   const lineB = useRef<HTMLSpanElement>(null);
   const lineV = useRef<HTMLSpanElement>(null);
-  const indexRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const [active, setActive] = useState(0);
 
@@ -87,10 +87,14 @@ export default function Ratio() {
          * through the gaps from the other side — for a beat the two are
          * interleaved strip by strip. The colon is the pivot and never
          * leaves.
+         *
+         * Sequenced, so a fast scroll gets whole transitions rather than
+         * several torn ones. The gate opens once the word has landed and the
+         * rig has cleaned up its old bands; the atmosphere behind it is still
+         * travelling, which is the point of it.
          */
-        const swap = (next: number) => {
-          const dir = next > indexRef.current ? 1 : -1;
-          indexRef.current = next;
+        const seq = createSequencer((next, from, done) => {
+          const dir = next > from ? 1 : -1;
           setActive(next);
           const p = PAIRS[next];
           const at = ATMOS[next];
@@ -102,6 +106,7 @@ export default function Ratio() {
           // B trails A by a beat, so the pair re-cuts in reading order.
           rigA.swap(p.a, tl, 0);
           rigB.swap(p.b, tl, 0.09);
+          tl.call(done, undefined, rigB.duration + 0.12);
 
           tl.to(colonRef.current, { scaleY: 0.62, x: 5 * dir, duration: 0.34, ease: 'power2.in' }, 0)
             .to(colonRef.current, { scaleY: 1, x: 0, duration: 0.95, ease: 'expo.out' }, 0.34)
@@ -127,7 +132,7 @@ export default function Ratio() {
             .to(lineA.current, { top: at.a, duration: 2, ease: 'expo.inOut' }, 0.1)
             .to(lineB.current, { top: at.b, duration: 2.2, ease: 'expo.inOut' }, 0.16)
             .to(lineV.current, { left: at.v, duration: 2.4, ease: 'expo.inOut' }, 0.05);
-        };
+        });
 
         /* Reports progress only — no pin, no scrub, nothing that can hold
            the page. The sticky stage is what keeps the composition in
@@ -138,11 +143,9 @@ export default function Ratio() {
           end: 'bottom bottom',
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            const next = Math.min(
-              PAIRS.length - 1,
-              Math.floor(self.progress * PAIRS.length * 0.999)
+            seq.to(
+              Math.min(PAIRS.length - 1, Math.floor(self.progress * PAIRS.length * 0.999))
             );
-            if (next !== indexRef.current) swap(next);
           },
         });
 

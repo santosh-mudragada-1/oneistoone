@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useGsap } from '@/lib/hooks';
+import { createSequencer } from '@/lib/sequence';
 import ProcessDiagram, { type DiagramDriver } from '../canvas/ProcessDiagram';
 import { createSliceRig } from '../type/sliceRig';
 import Marker from '../ui/Marker';
@@ -23,7 +24,6 @@ export default function Process() {
   const wordRef = useRef<HTMLSpanElement>(null);
   const noteRef = useRef<HTMLSpanElement>(null);
   const ruleRef = useRef<HTMLDivElement>(null);
-  const idxRef = useRef(0);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   /* Stage 00 is already arrived at: no leg drawn, its node fully present. */
   const driver = useRef<DiagramDriver>({ leg: -1, trail: 1, dot: 1 });
@@ -47,11 +47,15 @@ export default function Process() {
          * horizontal bands that shear off, and the next word arrives through
          * the gaps from the other side. The diagram moves on the same
          * timeline, and moves in whichever direction the reader is going.
+         *
+         * Sequenced, so a fast scroll gets whole transitions rather than
+         * several torn ones — and when stages are skipped the route jumps
+         * straight to the last leg, which the diagram draws as already
+         * travelled behind it.
          */
-        const go = (next: number) => {
-          const dir = next > idxRef.current ? 1 : -1;
-          const prev = idxRef.current;
-          idxRef.current = next;
+        const seq = createSequencer((next, from, done) => {
+          const dir = next > from ? 1 : -1;
+
           setStage(next);
 
           tlRef.current?.kill();
@@ -59,6 +63,7 @@ export default function Process() {
           tlRef.current = tl;
 
           rig.swap(STAGES[next].word, tl, 0);
+          tl.call(done, undefined, rig.duration + 0.12);
 
           /* The rule breathes with the word — it never resets to zero. */
           tl.to(ruleRef.current, { scaleX: 0.28, duration: 0.5, ease: 'power2.in' }, 0)
@@ -80,8 +85,9 @@ export default function Process() {
              delayed `fromTo` would leave the old leg drawn for a frame. */
           const d = driver.current;
           if (dir > 0) {
-            // Forward: travel the new leg, and only then let the dot arrive.
-            d.leg = prev;
+            // Forward: travel the last leg, and only then let the dot arrive.
+            // Anything skipped over is behind `leg`, so it reads as settled.
+            d.leg = next - 1;
             d.trail = 0;
             d.dot = 0;
             tl.to(d, { trail: 1, duration: 0.95, ease: 'power2.inOut' }, 0.12).to(
@@ -101,7 +107,7 @@ export default function Process() {
               0.32
             );
           }
-        };
+        });
 
         /* Progress only. The stage is held by native sticky. */
         const st = ScrollTrigger.create({
@@ -110,11 +116,9 @@ export default function Process() {
           end: 'bottom bottom',
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            const next = Math.min(
-              STAGES.length - 1,
-              Math.floor(self.progress * STAGES.length * 0.999)
+            seq.to(
+              Math.min(STAGES.length - 1, Math.floor(self.progress * STAGES.length * 0.999))
             );
-            if (next !== idxRef.current) go(next);
           },
         });
 

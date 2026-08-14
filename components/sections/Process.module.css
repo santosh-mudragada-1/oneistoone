@@ -4,9 +4,10 @@
 
 /* Native sticky, not a ScrollTrigger pin — see Ratio for the reasoning.
    Nothing on this page intercepts the wheel. */
+/* Six stages, roughly a viewport of scrolling each — see Ratio. */
 .pinWrap {
   position: relative;
-  height: 520vh;
+  height: 640vh;
 }
 
 .pin {

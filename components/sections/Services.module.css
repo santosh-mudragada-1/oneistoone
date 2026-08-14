@@ -2,9 +2,10 @@
   padding-bottom: clamp(4rem, 10vh, 8rem);
 }
 
+/* Set from the same edge as everything below it. */
 .head {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding-block: clamp(2.5rem, 7vh, 5rem) clamp(1.5rem, 4vh, 3rem);
 }
 
@@ -30,16 +31,23 @@
   border-bottom: 1px solid var(--line);
 }
 
+/* Number, then the discipline with its description directly beneath it.
+   Nothing here is staggered and nothing is ranged right: the numbers read
+   straight down one edge and the type reads straight down another. */
 .trigger {
   position: relative;
   display: grid;
-  grid-template-columns: 3.2rem 1fr auto;
-  align-items: center;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  align-items: start;
   gap: clamp(0.75rem, 2vw, 2rem);
   width: 100%;
   text-align: left;
   padding-block: clamp(0.5rem, 1.4vw, 1.1rem);
   transition: opacity 0.5s var(--e-quart);
+}
+
+.stack {
+  min-width: 0;
 }
 
 /* Everything else recedes while one discipline is being read. */
@@ -52,7 +60,6 @@
   font-size: var(--t-label);
   letter-spacing: 0.16em;
   color: var(--fg-faint);
-  align-self: start;
   padding-top: 0.9em;
   transition: color 0.4s var(--e-quart);
 }
@@ -64,14 +71,6 @@
 .wordMask {
   display: block;
   overflow: hidden;
-  /* Compositional offset — this is where the list gets its rhythm now that
-     every discipline shares one type size. */
-  padding-left: var(--indent, 0%);
-  transition: padding-left 0.7s var(--e-expo);
-}
-
-.row[data-active='true'] .wordMask {
-  padding-left: 0%;
 }
 
 .word {
@@ -92,56 +91,25 @@
   font-stretch: 120%;
 }
 
-.tail {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  justify-self: end;
-}
-
+/* Always in the flow, so the row never changes height as the reader moves
+   down the list — only its ink comes and goes. */
 .desc {
+  display: block;
   font-family: var(--f-mono);
   font-size: var(--t-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fg-dim);
-  text-align: right;
-  max-width: 22ch;
+  text-align: left;
+  margin-top: 0.7em;
   opacity: 0;
-  transform: translateX(1.2rem);
+  transform: translateX(-1.2rem);
   transition: opacity 0.5s var(--e-quart), transform 0.7s var(--e-expo);
 }
 
 .row[data-active='true'] .desc {
   opacity: 1;
   transform: translateX(0);
-}
-
-.plus {
-  flex: none;
-  width: 1.4em;
-  height: 1.4em;
-  display: grid;
-  place-items: center;
-  font-size: clamp(1.1rem, 1.8vw, 1.6rem);
-  line-height: 1;
-  color: var(--red);
-  transition: transform 0.6s var(--e-expo);
-}
-
-.row[data-active='true'] .plus {
-  transform: rotate(135deg);
-}
-
-/* --- Inline preview (touch + keyboard) ----------------------------------- */
-
-.inline {
-  width: min(100%, 320px);
-  aspect-ratio: 1 / 1;
-  margin: 0 0 1.25rem 3.2rem;
-  border: 1px solid var(--line);
-  overflow: hidden;
-  position: relative;
 }
 
 /* --- Cursor-following plate (pointer) ------------------------------------ */
@@ -186,27 +154,13 @@
 
 @media (max-width: 780px) {
   .trigger {
-    grid-template-columns: 2.4rem 1fr auto;
-    align-items: start;
-  }
-  .tail {
-    align-self: start;
-    padding-top: 0.8em;
-  }
-  .desc {
-    display: none;
-  }
-  .inline {
-    margin-left: 2.4rem;
-  }
-  .head {
-    justify-content: flex-start;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
   }
   .word {
     font-size: clamp(1.6rem, 7vw, 2.6rem);
   }
-  /* Portrait has no room for the indent arc without crowding the measure. */
-  .wordMask {
-    padding-left: 0%;
+  /* No hover to reveal it, and no room to carry it unread. */
+  .desc {
+    display: none;
   }
 }

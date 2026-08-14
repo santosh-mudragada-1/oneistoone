@@ -64,16 +64,18 @@ export default function Nav() {
       })
     );
 
-    const compactTrigger = ScrollTrigger.create({
-      start: 'top top-=40',
-      end: 'max',
-      onToggle: (self) => setCompact(self.isActive),
-    });
+    /* Compact — which is also what gives the bar its solid background — is
+       simply "the page is scrolled". A ScrollTrigger ending at `max` released
+       it at the very bottom of the document, so the nav turned transparent
+       again over the footer and the type behind it showed through. */
+    const onScroll = () => setCompact(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       ScrollTrigger.removeEventListener('refresh', resolve);
+      window.removeEventListener('scroll', onScroll);
       triggers.forEach((t) => t.kill());
-      compactTrigger.kill();
     };
   }, []);
 

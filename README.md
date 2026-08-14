@@ -66,6 +66,7 @@ components/
 lib/
   experiments.ts       the six generative sketches
   noise.ts             value noise / seeded PRNG
+  sequence.ts          one stage change at a time, latest target wins
   hooks.ts             gsap context, sketch ticker, magnetic, media queries
 ```
 
@@ -80,6 +81,18 @@ inside the mark.
 **Surfaces.** Sections carry `data-surface="ink" | "paper" | "red"`, which
 re-binds `--bg`/`--fg`/`--line`. The nav and cursor read the same attribute so
 they invert with the page instead of guessing.
+
+**The cursor re-tests on scroll, not only on pointer events.** The page moves
+under a stationary pointer far more often than the pointer moves over the
+page, so a label picked up in one section used to stay lit all the way down
+the document and back — no pointer event ever fired to clear it. It now
+re-resolves from `elementFromPoint` on scroll, throttled to a frame.
+
+**The nav is opaque whenever the page is scrolled.** That state used to come
+from a ScrollTrigger ending at `max`, which released at the very bottom of the
+document: the bar turned transparent again over the footer and the type behind
+it showed through. It is a plain `scrollY > 40` check now — there is no range
+for the end of the page to fall outside of.
 
 **Scroll feel lives in one place.** Lenis runs in `lerp` mode (0.075), not
 duration mode: the position eases toward the target every frame, so the glide
@@ -116,14 +129,30 @@ Three things make it work:
   `-webkit-text-stroke` are inherited from whatever the section already set.
 - **Throw is measured against the type size, not the word's width.** A short
   word has to shear as hard as a long one or it reads as a wobble.
-- **Bands carry a padded bleed** (`--bleed`, offset back out by `top`). These
-  sections set leading below 1, so glyphs sit slightly outside the line box
-  and the outermost strips would otherwise shave the caps.
+- **Every band is padded past its own ink and offset back** (`--bleed`,
+  `--bleed-x`). A band is clipped to its own box, so that box has to be bigger
+  than the type it holds. Vertically because these sections set leading below
+  1; horizontally because the negative tracking applies after the final letter
+  too, which measures the box narrower than the word paints and shaves the
+  last stroke clean off.
 
 The rig appends to a timeline the caller owns, rather than running its own, so
 the rule, the copy and the diagram stay in step with the word. Earlier
 versions compressed the width axis instead; that squeezed the letterforms
 sideways into each other and was rejected.
+
+**Stage changes queue; they never interrupt each other.** Both sequences go
+through `lib/sequence.ts`. A fast scroll crosses several boundaries within a
+few frames, and playing each one on arrival killed every transition a fraction
+into the next — which is what made these sections feel rushed rather than
+quick. The sequencer lets the running transition finish, keeps only the latest
+stage the reader has reached, then goes straight there and skips what was
+passed. The diagram handles the skip by treating everything behind the last
+leg as already travelled.
+
+`play` is handed a `done` it must call, and it should call it when the *word*
+has landed — not at the end of the timeline. These sections carry much slower
+atmosphere tweens that must not hold the next stage up.
 
 **Sections are numbered.** Every section renders a `<Marker>`, which also
 supplies the section's `<h2>` — the oversized statements are content, not
@@ -170,6 +199,7 @@ remove.
 | `G` | toggle the layout grid |
 | `Esc` | close the menu |
 | Hover a discipline | live preview plate trails the cursor |
+| — | the list is not clickable; it is a list, not a menu |
 | Click an experiment | reseed the composition |
 | Tab | full keyboard path, visible focus, skip link first |
 # oneistoone

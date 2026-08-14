@@ -6,11 +6,16 @@
   display: inline-block;
   white-space: nowrap;
   vertical-align: top;
-  /* Sections here set leading below 1, so glyphs sit slightly outside the line
-     box. Bands are clipped to their own box, so each one is padded past the
-     type and offset back — otherwise the outermost strips shave the caps and
-     the descenders. */
+  /* A band is clipped to its own box, so that box has to be larger than the
+     ink it holds — otherwise the clip lands on a letterform.
+
+     Vertically: these sections set leading below 1, which puts caps and
+     descenders outside the line box.
+     Horizontally: the negative tracking is applied after the final letter as
+     well, so the box measures narrower than the word actually paints and the
+     last stroke gets shaved off. */
   --bleed: 0.16em;
+  --bleed-x: 0.16em;
 }
 
 /* Holds the box open in normal flow. Nothing else here is in the flow, so
@@ -20,10 +25,12 @@
   visibility: hidden;
 }
 
+/* Padded past the type on all four sides and offset back by the same amount,
+   so the band sits exactly over the word and clips only empty space. */
 .slice {
   position: absolute;
   top: calc(var(--bleed) * -1);
-  padding-block: var(--bleed);
+  padding: var(--bleed) var(--bleed-x);
   display: block;
   will-change: transform, opacity;
   pointer-events: none;
@@ -32,9 +39,9 @@
 /* Bands anchor to the edge the word is set from, so a longer or shorter
    replacement grows away from the reader's eye rather than under it. */
 .rig[data-align='left'] .slice {
-  left: 0;
+  left: calc(var(--bleed-x) * -1);
 }
 
 .rig[data-align='right'] .slice {
-  right: 0;
+  right: calc(var(--bleed-x) * -1);
 }

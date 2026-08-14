@@ -7,9 +7,12 @@
 /* Held by native CSS sticky rather than a ScrollTrigger pin. The browser does
    the holding, so the wheel is never intercepted and no pin-spacer is inserted
    into the DOM mid-scroll. ScrollTrigger only reports progress here. */
+/* Four pairs across this, so each one holds for a full viewport of scrolling
+   before the next is asked for. Shorter than this and an ordinary flick of
+   the wheel crosses two boundaries at once. */
 .pinWrap {
   position: relative;
-  height: 420vh;
+  height: 500vh;
 }
 
 .mapping {

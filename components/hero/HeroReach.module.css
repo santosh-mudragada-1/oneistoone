@@ -1,12 +1,20 @@
-/* The hero is full-bleed: the canvas, the vignette and the marks all measure
-   against the whole frame, so the section's own inline padding moves onto the
-   content instead. Percentages here have to agree with the canvas. */
+/* Taller than the screen so the scroll has somewhere to bring the hands
+   together, held by native sticky rather than a pin — the wheel is never
+   intercepted and no spacer is injected mid-scroll. */
 .hero {
   position: relative;
-  height: 100svh;
-  min-height: 620px;
+  height: 175vh;
   padding-inline: 0;
   background: var(--ink);
+}
+
+/* Full-bleed: the canvas and the vignette measure against the whole frame, so
+   the section's inline padding moves onto the content instead. */
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 600px;
   overflow: hidden;
 }
 
@@ -27,30 +35,7 @@
   background:
     radial-gradient(130% 95% at 52% 48%, transparent 38%, rgba(10, 10, 10, 0.62) 100%),
     linear-gradient(180deg, rgba(10, 10, 10, 0.88) 0%, rgba(10, 10, 10, 0) 24%),
-    linear-gradient(0deg, rgba(10, 10, 10, 0.9) 0%, rgba(10, 10, 10, 0) 23%);
-}
-
-/* --- The operator ---------------------------------------------------------
-   The gap between the fingertips is the colon in 1:1. Its position is the
-   canvas's meeting point, so these two numbers are load-bearing. */
-.marks {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.colon {
-  position: absolute;
-  left: 61.5%;
-  top: 73.5%;
-  transform: translate(-50%, -50%);
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: clamp(2rem, 4.4vw, 4.4rem);
-  line-height: 0.66;
-  color: var(--red);
-  will-change: transform, opacity;
+    linear-gradient(0deg, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.62) 7%, rgba(10, 10, 10, 0) 22%);
 }
 
 /* --- Content --------------------------------------------------------------- */
@@ -102,12 +87,13 @@
 
 /* --- Headline -------------------------------------------------------------- */
 
-/* The type block sits high and tight so the lower third belongs entirely to
-   the gesture. The two fighting for the same band is what buried the CTAs
-   under a forearm. */
+/* Centred, and held in the upper half so the whole lower band belongs to the
+   gesture. The two fighting for the same band is what buried the CTAs under a
+   forearm. */
 .body {
   max-width: 100%;
-  margin-top: clamp(1.5rem, 5vh, 4rem);
+  margin-top: clamp(1rem, 4vh, 3rem);
+  text-align: center;
 }
 
 .bottom {
@@ -117,7 +103,7 @@
 .headline {
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: clamp(2.5rem, 7.2vw, 7.6rem);
+  font-size: clamp(2.4rem, 6.7vw, 7.1rem);
   line-height: 0.93;
   letter-spacing: -0.045em;
   color: var(--paper);
@@ -145,27 +131,14 @@
   will-change: transform, opacity;
 }
 
-.lead {
-  margin-top: clamp(1.25rem, 3vh, 2rem);
-  max-width: 36ch;
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: rgba(241, 241, 237, 0.6);
-  will-change: opacity, transform;
-}
-
-/* The phrase the whole studio is named after gets the only full white. */
-.leadKey {
-  color: var(--paper);
-}
-
 /* --- Actions --------------------------------------------------------------- */
 
 .actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.6rem;
-  margin-top: clamp(1.6rem, 4vh, 2.6rem);
+  margin-top: clamp(1.75rem, 4.5vh, 3rem);
 }
 
 .primary,
@@ -271,19 +244,11 @@
    The hands move to the middle of the frame and the type sits above them, so
    the gesture is still the centre of the composition rather than a crop. */
 @media (max-width: 780px) {
-  .colon {
-    left: 52%;
-    top: 74.5%;
-  }
   .body {
     max-width: none;
   }
   .headline {
     font-size: clamp(2.3rem, 11.5vw, 4rem);
-  }
-  .lead {
-    max-width: 30ch;
-    font-size: var(--t-body);
   }
   .content {
     padding-block: clamp(4.5rem, 12vh, 6rem) var(--edge);

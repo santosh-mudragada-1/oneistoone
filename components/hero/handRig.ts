@@ -26,8 +26,8 @@ export type Segment = {
 export type Hand = {
   segs: Segment[];
   palm: [number, number][];
-  /** Middle fingertip — the leading point, and what the composition is
-   *  built on. */
+  /** Index fingertip — the leading digit in both poses, and the point the two
+   *  hands are brought together on. */
   tip: [number, number];
 };
 
@@ -42,16 +42,25 @@ type Finger = {
   phase: number;
 };
 
-/* An open hand, relaxed, reaching. What makes it read as a hand and not as a
-   paw is the fingertip arc: the middle finger is longest, the index sits back
-   from it, and each finger droops a little more than the one before. The fan
-   is wide enough that the four stay separate once they are dithered — merged
-   fingers were the first pass's whole problem. */
-const FINGERS: Finger[] = [
+/**
+ * Two poses, because the reference is two different hands.
+ *
+ * OPEN is the relaxed hand: fingers fanned and drooping, index carried
+ * furthest forward. POINT is the other one: index extended, the remaining
+ * three folded back into the palm and the thumb tucked over them.
+ *
+ * In both, the index is the leading digit — that is what lets the two of them
+ * meet fingertip to fingertip.
+ */
+export type Pose = Finger[];
+
+/* Relaxed. The fingertip arc is what makes it a hand and not a paw: index
+   furthest, then each finger drooping more than the one before. */
+export const POSE_OPEN: Pose = [
   {
     root: [0.99, -0.31],
     lens: [0.36, 0.21, 0.16],
-    base: [-0.04, 0.04, 0.14],
+    base: [-0.06, -0.02, 0.02],
     fold: [0.35, 0.45, 0.55],
     radii: [0.108, 0.095, 0.083, 0.066],
     phase: 0,
@@ -59,7 +68,7 @@ const FINGERS: Finger[] = [
   {
     root: [1.02, -0.08],
     lens: [0.38, 0.22, 0.17],
-    base: [0.06, 0.16, 0.28],
+    base: [0.24, 0.52, 0.82],
     fold: [0.35, 0.45, 0.55],
     radii: [0.113, 0.1, 0.087, 0.07],
     phase: 1.9,
@@ -67,7 +76,7 @@ const FINGERS: Finger[] = [
   {
     root: [0.98, 0.14],
     lens: [0.35, 0.2, 0.15],
-    base: [0.18, 0.32, 0.48],
+    base: [0.38, 0.7, 1.05],
     fold: [0.35, 0.45, 0.55],
     radii: [0.106, 0.093, 0.081, 0.065],
     phase: 3.4,
@@ -75,7 +84,7 @@ const FINGERS: Finger[] = [
   {
     root: [0.88, 0.33],
     lens: [0.27, 0.16, 0.12],
-    base: [0.32, 0.5, 0.68],
+    base: [0.54, 0.88, 1.26],
     fold: [0.35, 0.45, 0.55],
     radii: [0.09, 0.078, 0.068, 0.055],
     phase: 5.1,
@@ -83,10 +92,56 @@ const FINGERS: Finger[] = [
   {
     root: [0.16, -0.34],
     lens: [0.42, 0.3, 0.21],
-    base: [-0.62, -0.3, -0.02],
+    base: [-0.62, -0.34, -0.1],
     fold: [0.2, 0.25, 0.3],
     radii: [0.16, 0.135, 0.108, 0.086],
     phase: 2.6,
+  },
+];
+
+/* Pointing. The three folded fingers have to turn through more than a right
+   angle at each joint or their tips hang below the palm as separate hooks
+   instead of tucking into its mass. */
+export const POSE_POINT: Pose = [
+  {
+    root: [0.99, -0.31],
+    lens: [0.36, 0.21, 0.16],
+    base: [-0.04, 0.02, 0.06],
+    fold: [0.3, 0.4, 0.5],
+    radii: [0.108, 0.095, 0.083, 0.066],
+    phase: 0.7,
+  },
+  {
+    root: [1.02, -0.08],
+    lens: [0.38, 0.22, 0.17],
+    base: [0.6, 2.0, 3.3],
+    fold: [0.2, 0.16, 0.12],
+    radii: [0.113, 0.1, 0.087, 0.07],
+    phase: 2.5,
+  },
+  {
+    root: [0.98, 0.14],
+    lens: [0.35, 0.2, 0.15],
+    base: [0.8, 2.2, 3.5],
+    fold: [0.2, 0.16, 0.12],
+    radii: [0.106, 0.093, 0.081, 0.065],
+    phase: 4.1,
+  },
+  {
+    root: [0.88, 0.33],
+    lens: [0.27, 0.16, 0.12],
+    base: [0.95, 2.4, 3.7],
+    fold: [0.2, 0.16, 0.12],
+    radii: [0.09, 0.078, 0.068, 0.055],
+    phase: 5.8,
+  },
+  {
+    root: [0.16, -0.34],
+    lens: [0.42, 0.3, 0.21],
+    base: [-0.3, 0.35, 0.95],
+    fold: [0.15, 0.2, 0.24],
+    radii: [0.16, 0.135, 0.108, 0.086],
+    phase: 1.2,
   },
 ];
 
@@ -119,7 +174,7 @@ const FOLD = 0.34;
 const TREMOR = 0.011;
 
 export type HandOptions = {
-  /** Where the middle fingertip should land, in world px. */
+  /** Where the index fingertip should land, in world px. */
   tipX: number;
   tipY: number;
   /** Palm length in px — the only thing that changes between viewports. */
@@ -128,6 +183,7 @@ export type HandOptions = {
   mirror: 1 | -1;
   /** 0 resting, 1 fully extended. */
   reach: number;
+  pose: Pose;
   /** Milliseconds, for the tremor. */
   t: number;
   seed: number;
@@ -142,7 +198,7 @@ export function buildHand(o: HandOptions): Hand {
 }
 
 function solve(o: HandOptions, ox: number, oy: number): Hand {
-  const { scale, tilt, mirror, reach, t, seed } = o;
+  const { scale, tilt, mirror, reach, t, seed, pose } = o;
   const cos = Math.cos(tilt);
   const sin = Math.sin(tilt);
   const closed = 1 - reach;
@@ -168,7 +224,7 @@ function solve(o: HandOptions, ox: number, oy: number): Hand {
 
   let tip: [number, number] = [0, 0];
 
-  FINGERS.forEach((f, fi) => {
+  pose.forEach((f, fi) => {
     let x = f.root[0];
     let y = f.root[1];
     for (let j = 0; j < 3; j++) {
@@ -184,7 +240,7 @@ function solve(o: HandOptions, ox: number, oy: number): Hand {
       x = nx;
       y = ny;
     }
-    if (fi === 1) tip = toWorld(x, y);
+    if (fi === 0) tip = toWorld(x, y);
   });
 
   return { segs, palm: PALM.map(([x, y]) => toWorld(x, y)), tip };

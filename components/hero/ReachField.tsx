@@ -2,36 +2,43 @@
 
 import { useRef } from 'react';
 import { useSketch } from '@/lib/hooks';
-import { fbm, hash2 } from '@/lib/noise';
-import { buildHand, capsulePath, palmPath, type Hand } from './handRig';
+import { fbm } from '@/lib/noise';
+import {
+  buildHand,
+  capsulePath,
+  palmPath,
+  POSE_OPEN,
+  POSE_POINT,
+  type Hand,
+} from './handRig';
 
 /**
- * The hero field: two hands reaching, and the ASCII they disturb.
+ * The hero field: two hands reaching, drawn entirely in ASCII.
  *
- * One low-resolution buffer carries the hands as a luminance field. It is
- * dithered into the halftone you see, and it is *also* what the ASCII pass
- * samples for density — so the characters genuinely thicken where a hand is
- * rather than being composited near one. Everything the cursor and the scroll
- * do is applied to the hands in world space, which means the field follows
- * for free.
+ * The hands are solved as geometry and rendered into a small luminance
+ * buffer; that buffer is then read once per cell and turned into characters.
+ * So the hands are not an image with characters laid over them — the
+ * characters *are* the hands, and the same sampling that draws them also
+ * carries the ambient field around them. One system, one pass.
  *
- * Cost is kept flat by never touching a DOM node per character: the hands
- * redraw at 30fps (they move less than a pixel a frame), the ASCII refreshes
- * a third of its rows per frame, and the visible canvas only ever composites
- * two bitmaps.
+ * Cost is held down by never changing canvas state per character. Cells are
+ * bucketed by glyph and drawn in eight batches, the luminance is rebuilt at
+ * 25fps (the hands move well under a pixel a frame) and the character grid
+ * refreshes a third of its rows per frame, so per-frame cost stays even
+ * rather than spiking.
  */
 
 export type FieldDriver = {
   /** 0 during the load, 1 once the hands are live. */
   settle: number;
-  /** Emergence from darkness, then hand opacity. */
+  /** Emergence from darkness, then overall presence. */
   presence: number;
-  /** ASCII field visibility, set by the entrance. */
+  /** Ambient field visibility. */
   ascii: number;
-  /** Scroll fade for the whole field, set by the scroll. */
+  /** Scroll: 0 apart, 1 index fingertips touching. */
+  converge: number;
+  /** Scroll: fades the whole field as the hero releases. */
   fade: number;
-  /** Extra px the hands pull apart — scroll. */
-  spread: number;
   /** Cursor position over the hero, 0..1. */
   px: number;
   py: number;
@@ -39,37 +46,17 @@ export type FieldDriver = {
   cursor: number;
 };
 
-/** Halftone dot pitch, CSS px. Also the resolution of the hand buffer. */
-const CELL = 3.5;
-/** ASCII character pitch, CSS px. */
-const ACELL = 15;
-/** Rows refreshed per frame, as a fraction. */
+/* Character cell. Narrow and tall, the way monospace actually sets. */
+const CW = 7;
+const CH = 11;
+/* Luminance buffer pixels per CSS px — supersampled, then box-filtered per
+   cell, so a finger edge lands as a graded run of characters and not a stair. */
+const FS = 0.25;
+/* Rows refreshed per frame. */
 const SLICES = 3;
 
-/* Ordered by ink, lightest first. */
-const RAMP = ['.', ':', '/', '+', '*', '0', '1', '#'];
-
-/* 4×4 ordered dither. Threshold per pixel, so a slowly moving edge crawls in
-   dots rather than sliding as a hard line. */
-const BAYER = [
-  [0, 8, 2, 10],
-  [12, 4, 14, 6],
-  [3, 11, 1, 9],
-  [15, 7, 13, 5],
-].map((r) => r.map((v) => (v + 0.5) / 16));
-
-type Buf = {
-  field: HTMLCanvasElement;
-  fctx: CanvasRenderingContext2D;
-  dith: HTMLCanvasElement;
-  dctx: CanvasRenderingContext2D;
-  img: ImageData;
-  ascii: HTMLCanvasElement;
-  actx: CanvasRenderingContext2D;
-  fw: number;
-  fh: number;
-  lum: Uint8ClampedArray | null;
-};
+/* Ordered by ink. The hands are read entirely through this ramp. */
+const RAMP = ['.', ':', '-', '+', '=', '*', '0', '#'];
 
 let MONO: string | null = null;
 const monoFont = () => {
@@ -82,6 +69,23 @@ const monoFont = () => {
 };
 
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+type Buf = {
+  field: HTMLCanvasElement;
+  fctx: CanvasRenderingContext2D;
+  ascii: HTMLCanvasElement;
+  actx: CanvasRenderingContext2D;
+  fw: number;
+  fh: number;
+  cols: number;
+  rows: number;
+  lum: Uint8ClampedArray | null;
+  /** Flat [x, y, x, y, …] per glyph, reused every pass so nothing is
+   *  allocated in the draw loop. */
+  hand: number[][];
+  air: number[][];
+};
 
 export default function ReachField({
   driver,
@@ -91,28 +95,24 @@ export default function ReachField({
   reduced: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
-
-  // Offscreen buffers, rebuilt on resize.
   const buf = useRef<Buf | null>(null);
-
   const slice = useRef(0);
-  const lastHands = useRef(-Infinity);
+  const lastField = useRef(-Infinity);
+  /* The pointer the hands actually answer to, easing toward the real one. */
+  const smooth = useRef({ x: 0.5, y: 0.5 });
 
   useSketch(
     ref,
     (_ctx, w, h) => {
-      const fw = Math.max(2, Math.ceil(w / CELL));
-      const fh = Math.max(2, Math.ceil(h / CELL));
+      const cols = Math.max(2, Math.ceil(w / CW));
+      const rows = Math.max(2, Math.ceil(h / CH));
+      const fw = Math.max(2, Math.round(w * FS));
+      const fh = Math.max(2, Math.round(h * FS));
 
       const field = document.createElement('canvas');
       field.width = fw;
       field.height = fh;
       const fctx = field.getContext('2d', { willReadFrequently: true })!;
-
-      const dith = document.createElement('canvas');
-      dith.width = fw;
-      dith.height = fh;
-      const dctx = dith.getContext('2d')!;
 
       const ascii = document.createElement('canvas');
       ascii.width = Math.max(2, Math.round(w));
@@ -122,16 +122,17 @@ export default function ReachField({
       buf.current = {
         field,
         fctx,
-        dith,
-        dctx,
-        img: dctx.createImageData(fw, fh),
         ascii,
         actx,
         fw,
         fh,
+        cols,
+        rows,
         lum: null,
+        hand: RAMP.map(() => []),
+        air: RAMP.map(() => []),
       };
-      lastHands.current = -Infinity;
+      lastField.current = -Infinity;
       slice.current = 0;
     },
     (ctx, t, w, h) => {
@@ -140,55 +141,78 @@ export default function ReachField({
       if (!b || !d) return;
 
       const small = w < 780;
+      const time = reduced ? 0 : t;
+
+      /* --- Pointer ------------------------------------------------------- */
+
+      const sm = smooth.current;
+      if (reduced) {
+        sm.x = 0.5;
+        sm.y = 0.5;
+      } else {
+        // Eased toward the pointer every frame rather than tracking it, so
+        // the hands answer with weight instead of snapping.
+        sm.x += (d.px - sm.x) * 0.045;
+        sm.y += (d.py - sm.y) * 0.045;
+      }
 
       /* --- Pose ---------------------------------------------------------- */
 
-      /* The reach breathes on a ~15s cycle, starting at the bottom of the
-         curve so the first thing the hands do after the load is move toward
-         each other. `settle` blends the load pose into it. */
+      const conv = clamp01(d.converge);
+      /* Idle breathing, damped away as the scroll takes over — two things
+         driving the same gap would read as a fight. */
       const idle = 0.5 - 0.5 * Math.cos(t * 0.00042);
-      const reach = mix(0.04, 0.18 + idle * 0.82, reduced ? 1 : d.settle);
-      const time = reduced ? 0 : t;
+      const live = reduced ? 1 : d.settle;
+      const reach = mix(0.04, mix(0.2 + idle * 0.5, 1, conv), live);
 
-      /* The gesture holds its own band under the type rather than sharing the
-         line with it — the two competing for the same pixels is what made the
-         first pass unreadable. */
-      const meetX = small ? w * 0.52 : w * 0.615;
-      const meetY = small ? h * 0.745 : h * 0.73;
-      const palm = small ? Math.min(w * 0.27, h * 0.16) : Math.min(w * 0.13, h * 0.21);
+      const meetX = w * 0.5;
+      const meetY = small ? h * 0.685 : h * 0.69;
+      const palm = small ? Math.min(w * 0.36, h * 0.2) : Math.min(w * 0.135, h * 0.215);
 
-      /* The cursor leans a hand toward it — a few px, well under the reach
-         cycle, so it registers as response rather than as a control. */
-      const cx = d.px * w;
-      const cy = d.py * h;
+      /* The nearer hand leans toward the pointer. Small — this is a response,
+         not a control. */
+      const cx = sm.x * w;
+      const cy = sm.y * h;
       const lean = (side: number) => {
         if (reduced) return 0;
-        const dx = cx - meetX;
-        // Only the hand the pointer is nearest answers to it.
-        const near = Math.max(0, 1 - Math.abs(dx) / (w * 0.55));
-        return Math.sign(dx) === side ? near * d.cursor * 16 * side : 0;
+        const off = cx - meetX;
+        const near = Math.max(0, 1 - Math.abs(off) / (w * 0.6));
+        const own = Math.sign(off) === side ? near : near * 0.3;
+        // Yields as the fingers close, so nothing can push them apart at the
+        // moment they are supposed to be touching.
+        return own * d.cursor * 18 * side * (1 - conv * 0.85);
       };
+      const leanY = reduced ? 0 : (sm.y - 0.5) * d.cursor * 14 * (1 - conv * 0.85);
 
-      // Reaching closes the gap; scrolling away opens it.
-      const gap = mix(w * 0.068, w * 0.015, reach) + d.spread;
-      const sag = (1 - reach) * h * 0.012;
+      /* At full convergence both index fingertips are asked for the same
+         point, which is what makes them meet rather than approach. */
+      const gap = mix(small ? w * 0.1 : w * 0.115, 0, conv) + (1 - live) * w * 0.05;
+      const rise = mix(small ? h * 0.035 : h * 0.042, 0, conv);
+
+      /* The moment of contact, marked in light rather than colour. */
+      const contact = clamp01((conv - 0.8) / 0.2);
 
       const hands: Hand[] = [
         buildHand({
+          pose: POSE_OPEN,
           tipX: meetX - gap * 0.5 + lean(-1),
-          tipY: meetY + h * 0.028 + sag,
-          scale: palm * 0.9,
-          tilt: -0.12,
+          tipY: meetY + rise + leanY,
+          scale: palm * 0.94,
+          /* The two index fingers have to arrive at different angles or they
+             fuse into a single rod at the moment they meet. This one comes up
+             from below left; the other comes down from above right. */
+          tilt: -0.2,
           mirror: 1,
           reach,
           t: time,
           seed: 0,
         }),
         buildHand({
+          pose: POSE_POINT,
           tipX: meetX + gap * 0.5 + lean(1),
-          tipY: meetY - h * 0.026 - sag * 0.7,
-          scale: palm * 1.07,
-          tilt: 0.06,
+          tipY: meetY - rise + leanY * 0.7,
+          scale: palm * 1.06,
+          tilt: -0.24,
           mirror: -1,
           reach,
           t: time,
@@ -196,35 +220,23 @@ export default function ReachField({
         }),
       ];
 
-      /* --- Hands: luminance, then dither ---------------------------------- */
+      /* --- Luminance ----------------------------------------------------- */
 
-      // They move well under a pixel a frame; 30fps is indistinguishable.
-      if (t - lastHands.current > 33) {
-        lastHands.current = t;
-        drawHands(b, hands, w, h, d.presence);
-        dither(b);
+      if (t - lastField.current > 40) {
+        lastField.current = t;
+        drawHands(b, hands, w, h, d.presence, meetX, meetY, palm, contact);
+        b.lum = b.fctx.getImageData(0, 0, b.fw, b.fh).data;
       }
 
-      /* --- ASCII: a third of the rows, every frame ------------------------ */
+      /* --- Characters ---------------------------------------------------- */
 
-      if (d.ascii * d.fade > 0.001) {
-        paintAscii(b, w, h, t, cx, cy, d, slice.current, reduced);
-        slice.current = (slice.current + 1) % SLICES;
-      }
+      paint(b, w, h, t, cx, cy, d, slice.current, reduced);
+      slice.current = (slice.current + 1) % SLICES;
 
       /* --- Composite ------------------------------------------------------ */
 
       ctx.clearRect(0, 0, w, h);
-
-      // Hands first: chunky, unsmoothed, so the dither reads as print.
-      ctx.imageSmoothingEnabled = false;
-      ctx.globalAlpha = d.presence * 0.44 * d.fade;
-      ctx.drawImage(b.dith, 0, 0, b.fw, b.fh, 0, 0, b.fw * CELL, b.fh * CELL);
-      ctx.imageSmoothingEnabled = true;
-
-      // Then the field over them, so the characters read as disturbed by the
-      // hand rather than sitting behind it.
-      ctx.globalAlpha = d.ascii * d.fade;
+      ctx.globalAlpha = d.fade;
       ctx.drawImage(b.ascii, 0, 0, w, h);
       ctx.globalAlpha = 1;
     },
@@ -243,14 +255,24 @@ export default function ReachField({
 
 /* -------------------------------------------------------------------------- */
 
-function drawHands(b: Buf, hands: Hand[], w: number, h: number, presence: number) {
+function drawHands(
+  b: Buf,
+  hands: Hand[],
+  w: number,
+  h: number,
+  presence: number,
+  mx: number,
+  my: number,
+  palm: number,
+  contact: number
+) {
   const f = b.fctx;
-  f.setTransform(1 / CELL, 0, 0, 1 / CELL, 0, 0);
+  f.setTransform(b.fw / w, 0, 0, b.fh / h, 0, 0);
   f.clearRect(0, 0, w, h);
 
   /* 1 — silhouette, one path for both hands. */
   f.globalCompositeOperation = 'source-over';
-  f.fillStyle = '#4f4f4f';
+  f.fillStyle = '#6d6d6d';
   f.beginPath();
   hands.forEach((hand) => {
     palmPath(f, hand.palm);
@@ -259,18 +281,17 @@ function drawHands(b: Buf, hands: Hand[], w: number, h: number, presence: number
   f.fill();
 
   /* 2 — broad form. Vertical, so a hand is exposed by its height in the frame
-     and not by how far across it happens to sit: a diagonal wash left the far
-     hand two stops under the near one and broke it into unrelated pieces. */
+     and not by how far across it happens to sit. */
   f.globalCompositeOperation = 'source-atop';
-  const form = f.createLinearGradient(0, h * 0.42, 0, h * 0.98);
-  form.addColorStop(0, 'rgba(255,255,255,0.42)');
-  form.addColorStop(0.45, 'rgba(0,0,0,0.08)');
-  form.addColorStop(1, 'rgba(0,0,0,0.46)');
+  const form = f.createLinearGradient(0, h * 0.4, 0, h * 0.98);
+  form.addColorStop(0, 'rgba(255,255,255,0.5)');
+  form.addColorStop(0.45, 'rgba(255,255,255,0.04)');
+  form.addColorStop(1, 'rgba(0,0,0,0.34)');
   f.fillStyle = form;
   f.fillRect(0, 0, w, h);
 
-  /* 3 — cylindrical sheen per bone. This is what makes a capsule read as a
-     finger: a bright edge toward the light, a core shadow away from it. */
+  /* 3 — cylindrical sheen per bone: a bright edge toward the light and a core
+     shadow away from it, which is what makes a capsule read as a finger. */
   const LX = -0.5;
   const LY = -0.87;
   hands.forEach((hand) => {
@@ -289,10 +310,10 @@ function drawHands(b: Buf, hands: Hand[], w: number, h: number, presence: number
       const r = Math.max(s.ra, s.rb) * 1.05;
       const g = f.createLinearGradient(mx + nx * r, my + ny * r, mx - nx * r, my - ny * r);
       g.addColorStop(0, 'rgba(255,255,255,0)');
-      g.addColorStop(0.2, 'rgba(255,255,255,0.6)');
+      g.addColorStop(0.2, 'rgba(255,255,255,0.62)');
       g.addColorStop(0.52, 'rgba(255,255,255,0.06)');
-      g.addColorStop(0.82, 'rgba(0,0,0,0.34)');
-      g.addColorStop(1, 'rgba(0,0,0,0.12)');
+      g.addColorStop(0.82, 'rgba(0,0,0,0.36)');
+      g.addColorStop(1, 'rgba(0,0,0,0.14)');
       f.fillStyle = g;
       f.beginPath();
       capsulePath(f, s);
@@ -300,11 +321,24 @@ function drawHands(b: Buf, hands: Hand[], w: number, h: number, presence: number
     });
   });
 
-  /* 4 — the arms dissolve into the dark rather than being cropped by the
+  /* 4 — where the fingertips meet, the characters run up the ramp. The
+     contact is marked by the field getting denser, not by anything arriving
+     on top of it. */
+  if (contact > 0.001) {
+    const r = palm * 0.6;
+    const g = f.createRadialGradient(mx, my, 0, mx, my, r);
+    g.addColorStop(0, `rgba(255,255,255,${0.6 * contact})`);
+    g.addColorStop(0.45, `rgba(255,255,255,${0.22 * contact})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    f.fillStyle = g;
+    f.fillRect(mx - r, my - r, r * 2, r * 2);
+  }
+
+  /* 5 — the arms dissolve into the dark rather than being cropped by the
      frame. During the load the cut sits far inland, so the hands arrive out
      of blackness instead of fading up in place. */
   f.globalCompositeOperation = 'destination-out';
-  const cut = mix(0.66, 0.085, presence) * w;
+  const cut = mix(0.66, 0.075, presence) * w;
   const left = f.createLinearGradient(0, 0, cut, 0);
   left.addColorStop(0, 'rgba(0,0,0,1)');
   left.addColorStop(0.55, 'rgba(0,0,0,0.55)');
@@ -323,31 +357,7 @@ function drawHands(b: Buf, hands: Hand[], w: number, h: number, presence: number
   f.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-function dither(b: Buf) {
-  const src = b.fctx.getImageData(0, 0, b.fw, b.fh);
-  const s = src.data;
-  const out = b.img.data as Uint8ClampedArray;
-  b.lum = s;
-
-  for (let y = 0; y < b.fh; y++) {
-    const row = BAYER[y & 3];
-    for (let x = 0; x < b.fw; x++) {
-      const i = (y * b.fw + x) << 2;
-      // Premultiplied luminance, then a smoothstep so the midtones separate
-      // into dots instead of turning into flat grey.
-      let v = (s[i] / 255) * (s[i + 3] / 255);
-      v = v * v * (3 - 2 * v);
-      const on = v > row[x & 3];
-      out[i] = 255;
-      out[i + 1] = 255;
-      out[i + 2] = 255;
-      out[i + 3] = on ? 255 : 0;
-    }
-  }
-  b.dctx.putImageData(b.img, 0, 0);
-}
-
-function paintAscii(
+function paint(
   b: Buf,
   w: number,
   h: number,
@@ -359,56 +369,89 @@ function paintAscii(
   reduced: boolean
 ) {
   const a = b.actx;
-  const cols = Math.ceil(w / ACELL);
-  const rows = Math.ceil(h / ACELL);
-  const band = Math.ceil(rows / SLICES);
+  const band = Math.ceil(b.rows / SLICES);
   const r0 = slice * band;
-  const r1 = Math.min(rows, r0 + band);
+  const r1 = Math.min(b.rows, r0 + band);
+  if (r1 <= r0) return;
 
-  a.clearRect(0, r0 * ACELL, w, (r1 - r0) * ACELL);
-  a.font = `${Math.round(ACELL * 0.62)}px ${monoFont()}`;
+  a.clearRect(0, r0 * CH, w, (r1 - r0) * CH);
+  a.font = `${CH}px ${monoFont()}`;
   a.textBaseline = 'middle';
   a.textAlign = 'center';
 
-  const drift = reduced ? 0 : t * 0.000018;
-  const radius = w * 0.2;
+  const hand = b.hand;
+  const air = b.air;
+  for (let i = 0; i < RAMP.length; i++) {
+    hand[i].length = 0;
+    air[i].length = 0;
+  }
+
   const lum = b.lum;
+  const drift = reduced ? 0 : t * 0.000018;
+  const radius = w * 0.22;
+  const sx = b.fw / w;
+  const sy = b.fh / h;
+  const last = RAMP.length - 1;
 
-  for (let cy2 = r0; cy2 < r1; cy2++) {
-    const y = cy2 * ACELL + ACELL / 2;
-    for (let cx2 = 0; cx2 < cols; cx2++) {
-      const x = cx2 * ACELL + ACELL / 2;
+  for (let ry = r0; ry < r1; ry++) {
+    const y = ry * CH + CH / 2;
+    for (let rx = 0; rx < b.cols; rx++) {
+      const x = rx * CW + CW / 2;
 
-      // The hand, straight off the same buffer the halftone came from.
-      let hand = 0;
+      /* Box-filter the luminance under this cell. Point-sampling turns a
+         finger edge into a staircase; averaging turns it into a run of
+         characters that grade into the dark. */
+      let v = 0;
       if (lum) {
-        const fx = Math.min(b.fw - 1, (x / CELL) | 0);
-        const fy = Math.min(b.fh - 1, (y / CELL) | 0);
-        const i = (fy * b.fw + fx) << 2;
-        hand = (lum[i] / 255) * (lum[i + 3] / 255);
+        const fx = (x * sx) | 0;
+        const fy = (y * sy) | 0;
+        let n = 0;
+        for (let oy = -1; oy <= 1; oy++) {
+          const py = fy + oy;
+          if (py < 0 || py >= b.fh) continue;
+          for (let ox = -1; ox <= 1; ox++) {
+            const px = fx + ox;
+            if (px < 0 || px >= b.fw) continue;
+            const i = (py * b.fw + px) << 2;
+            v += (lum[i] / 255) * (lum[i + 3] / 255);
+            n++;
+          }
+        }
+        if (n) v /= n;
       }
 
-      // A slow abstract signal, so the field has shape of its own.
-      const n = fbm(x * 0.0042 + drift, y * 0.0042 - drift * 0.6, 17, 3);
+      if (v > 0.035) {
+        // The hand itself, read straight off the luminance.
+        const k = Math.pow(v > 1 ? 1 : v, 0.62);
+        hand[Math.min(last, (k * RAMP.length) | 0)].push(x, y);
+        continue;
+      }
 
-      // The pointer opens a soft window in the field.
+      /* Ambient signal. Barely there, and a little more awake around the
+         pointer — something to find rather than something to notice. */
       const dx = (x - cx) / radius;
       const dy = (y - cy) / radius;
       const glow = d.cursor * Math.max(0, 1 - (dx * dx + dy * dy));
-
-      const dens = n * 0.72 + hand * 0.95 + glow * 0.62 - 0.32;
-      if (dens <= 0.015) continue;
-
-      const k = dens > 1 ? 1 : dens;
-      const ch = RAMP[Math.min(RAMP.length - 1, (k * RAMP.length) | 0)];
-
-      // Rare enough that finding one feels like finding something.
-      if (k > 0.82 && hash2(cx2, cy2, 5) > 0.991) {
-        a.fillStyle = `rgba(255,42,26,${(0.25 + k * 0.45).toFixed(3)})`;
-      } else {
-        a.fillStyle = `rgba(241,241,237,${(0.05 + k * 0.26).toFixed(3)})`;
-      }
-      a.fillText(ch, x, y);
+      const n = fbm(x * 0.0042 + drift, y * 0.0042 - drift * 0.6, 17, 3);
+      const dens = n * 0.72 + glow * 0.7 - 0.4;
+      if (dens <= 0.01) continue;
+      air[Math.min(last, (dens * RAMP.length) | 0)].push(x, y);
     }
+  }
+
+  /* One fillStyle per glyph, not one per character: the state change is what
+     costs, and there are eight of them instead of several thousand. */
+  const lit = d.presence;
+  for (let i = 0; i < RAMP.length; i++) {
+    const pts = hand[i];
+    if (!pts.length) continue;
+    a.fillStyle = `rgba(241,241,237,${(0.3 + (i / last) * 0.7) * lit})`;
+    for (let j = 0; j < pts.length; j += 2) a.fillText(RAMP[i], pts[j], pts[j + 1]);
+  }
+  for (let i = 0; i < RAMP.length; i++) {
+    const pts = air[i];
+    if (!pts.length) continue;
+    a.fillStyle = `rgba(241,241,237,${(0.05 + (i / last) * 0.16) * d.ascii})`;
+    for (let j = 0; j < pts.length; j += 2) a.fillText(RAMP[i], pts[j], pts[j + 1]);
   }
 }

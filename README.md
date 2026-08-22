@@ -27,49 +27,48 @@ aren't any yet. The proof is the site itself and the six live experiments.
 
 ## The hero
 
-**Two hands reaching, drawn entirely in ASCII, and the scroll is what brings
-them together.** They start apart; scrolling closes the gap until the index
-fingertips meet. The contact is something the reader causes rather than
-something they watch, which is the only reason a hero animation earns a scroll
-at all.
+**Two hands reaching, drawn in ASCII, and the scroll is what brings them
+together.** They start apart; scrolling closes the gap until the fingertips
+meet. The contact is something the reader causes rather than something they
+watch, which is the only reason a hero animation earns a scroll at all.
 
-**The hands are built, not photographed.** `handRig.ts` solves a small
-skeleton — forearm, palm, five fingers of three phalanges — with forward
-kinematics and draws it as tapered capsules. That matters for more than
-licensing: because the hand is geometry, the *same buffer* that renders it is
-what the character pass samples. The hands are not an image with characters
-laid over them. The characters **are** the hands, and the same sampling
-carries the ambient field around them. One system, one pass.
+**The artwork is the render.** `Left hand.txt` and `Right hand.txt` are the
+source of truth — traced contours of the two hands. `handArt.ts` is generated
+from them: cropped to content, with the crop-edge artefacts removed (the
+source files close the arm outline along the image border, which renders as a
+stray vertical bar where the arm should simply run off the frame), and parsed
+into glyph buckets ordered outward from the fingertip. **If you edit the .txt,
+regenerate `handArt.ts`** — the tip, bounds and reveal order are derived.
 
-Two poses, because the reference is two different hands. `POSE_OPEN` is
-relaxed — fingers fanned and drooping. `POSE_POINT` has the index extended and
-the other three folded back into the palm. In both the index leads, which is
-what lets them meet fingertip to fingertip.
+Characters are drawn exactly as authored: never resampled, never rasterised
+from a bitmap. That is what holds up at any size, and it is where the earlier
+procedural rig fell down.
 
-Three things that took a rebuild to get right:
+Four things that took measuring rather than guessing:
 
-- **The fingertip arc is the whole silhouette.** Index furthest, then each
-  finger drooping more than the one before, fanned wide enough that the four
-  stay separate once they resolve into characters. An early pass had them
-  curled under with a thick forearm and it read as a sea creature.
-- **Lighting is vertical, never diagonal.** A wash across the frame exposed
-  each hand by how far across it happened to sit, leaving the far one two
-  stops under the near one and broken into unrelated pieces.
-- **The two index fingers must arrive at different angles.** One comes up from
-  below left, the other down from above right. Meeting head-on, they fused
-  into a single rod at exactly the moment the touch was supposed to read.
+- **The glyph advance is measured, not assumed.** At an assumed 0.55 the
+  characters ran 9% wider than their cell and the artwork smeared into solid
+  bars.
+- **Weight rides density as much as brightness does.** Set every glyph at one
+  size and a run of `A` stays a row of separate specks instead of becoming a
+  stroke — the hand reads as texture, not form. Heavy glyphs are set large
+  enough to touch their neighbours and close the contour; the light ones that
+  shade the interior stay small and faint.
+- **The cell size is the whole responsive story.** The artwork is 135 cells
+  wide, so on a phone the forearms always run off frame — which is what an arm
+  reaching in from outside should do. The floor is set so the hand itself,
+  wrist to fingertips, always fits.
+- **`dprCap` is 2 here, not 1.5.** Fine characters do not survive being drawn
+  at 1.5× and upscaled to a phone's 3×.
 
-Luminance maps to characters through a **gamma lift, not a smoothstep** — a
-smoothstep pushes the midtones down, and the midtones are where a hand lives.
-Where the fingertips meet, the field simply runs further up the ramp; the
-contact is marked in density, not by anything arriving on top of it.
-
-**One buffer, flat cost.** No DOM node is ever created per character, and
-canvas state is never changed per character either: cells are bucketed by
-glyph and drawn in eight batches, so a few thousand characters cost eight
-`fillStyle` writes. The luminance rebuilds at 25fps (the hands move well under
-a pixel a frame) and the character grid refreshes a third of its rows per
-frame, keeping per-frame cost even instead of spiking.
+**Cost is two `drawImage` calls.** Because the animation is pure translation,
+each hand is rastered into its own canvas once and blitted at a **whole-pixel**
+offset every frame — a bitmap blitted at a fractional offset resamples, and a
+resampled character stops being a character. Characters are only redrawn while
+the entrance is still revealing them. The ambient field refreshes a third of
+its rows per frame and thickens near the hands by sampling a distance field
+built from the artwork itself, so it reacts to the hands rather than merely
+sharing a canvas with them.
 
 The stage is held by **native sticky**, like every other held section here —
 no pin, no spacer, nothing that can take the wheel.

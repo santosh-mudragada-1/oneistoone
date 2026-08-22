@@ -15,8 +15,9 @@ the whole system:
 
 - **Actual size** → the page is framed like a print production sheet: registration
   crosses, a scroll rule, live viewport and clock readouts in the colophon.
-- **The ratio** → the module is a square. The service preview plate, the hero's
-  media chips and the grid overlay all resolve to 1:1.
+- **The ratio** → the module is a square. The service preview plate and the
+  grid overlay resolve to 1:1 — and in the hero the ratio is drawn as a
+  gesture: two hands reaching, the colon held in the gap between them.
 - **Correspondence** → the colon is the brand's operator. It stays red wherever
   it separates two things, and section 02 reads the name as an argument:
   Idea : Form, Noise : Signal.
@@ -26,16 +27,36 @@ aren't any yet. The proof is the site itself and the six live experiments.
 
 ## The hero
 
-`HeroStatement.tsx` — a light sheet where the sentence *is* the layout: media
-sits inside the line rather than beside it, so the type and the work occupy
-the same measure. Every chip is a live generative sketch, not a placeholder
-image, and the arrow is drawn rather than faded in.
+**Two hands reaching, and the gap between the fingertips is the colon in 1:1.**
+That gap is the only red on the screen. Behind them an ASCII field thickens
+wherever a hand passes — a human gesture and a digital system reading the same
+coordinates, which is the whole argument the studio makes.
 
-The chips lean toward the cursor. That offset is clamped to the section's own
-box and switched off by an IntersectionObserver when the hero leaves the
-viewport — unclamped, the pointer sitting far below the section drove the
-chips right out of the composition, which the reader then found scattered on
-scrolling back up.
+**The hands are built, not photographed.** `handRig.ts` solves a small
+skeleton — forearm, palm, five fingers of three phalanges — with forward
+kinematics and draws it as tapered capsules. That matters for more than
+licensing. Because the hand is geometry, the *same buffer* that renders it is
+what the ASCII samples for density, so the field genuinely reacts to the hand
+instead of being composited near one. Everything the cursor and the scroll do
+is applied to the hands in world space, and the field follows for free.
+
+What makes it read as a hand rather than a paw is the fingertip arc: middle
+longest, index set back from it, each finger drooping a little more than the
+one before, fanned wide enough that the four stay separate once dithered. The
+first pass curled the fingers under and thickened the forearm, and it read as
+a sea creature. Lighting is vertical, never diagonal — a wash across the frame
+left the far hand two stops under the near one and broke it into unrelated
+pieces.
+
+**One buffer, three passes, flat cost.** No DOM node is ever created per
+character. The hand luminance is drawn at a quarter resolution and dithered
+through a 4×4 Bayer matrix at 30fps — they move less than a pixel a frame — and
+the ASCII refreshes a third of its rows per frame so the per-frame cost stays
+even instead of spiking. The visible canvas only ever composites two bitmaps.
+
+The composition holds the type in the upper left and gives the whole lower
+band to the gesture. The two sharing a band is what buried the CTAs under a
+forearm on the first attempt.
 
 ## Stack
 
@@ -198,6 +219,7 @@ remove.
 |---|---|
 | `G` | toggle the layout grid |
 | `Esc` | close the menu |
+| Move the cursor in the hero | the nearer hand leans a few px; the field opens around the pointer |
 | Hover a discipline | live preview plate trails the cursor |
 | — | the list is not clickable; it is a list, not a menu |
 | Click an experiment | reseed the composition |

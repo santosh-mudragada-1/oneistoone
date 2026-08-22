@@ -1,0 +1,300 @@
+/* The hero is full-bleed: the canvas, the vignette and the marks all measure
+   against the whole frame, so the section's own inline padding moves onto the
+   content instead. Percentages here have to agree with the canvas. */
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 620px;
+  padding-inline: 0;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Keeps the nav and the bottom row legible over whatever the field is doing,
+   and closes the frame down at the edges so the hands sit in darkness. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 95% at 52% 48%, transparent 38%, rgba(10, 10, 10, 0.62) 100%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.88) 0%, rgba(10, 10, 10, 0) 24%),
+    linear-gradient(0deg, rgba(10, 10, 10, 0.9) 0%, rgba(10, 10, 10, 0) 23%);
+}
+
+/* --- The operator ---------------------------------------------------------
+   The gap between the fingertips is the colon in 1:1. Its position is the
+   canvas's meeting point, so these two numbers are load-bearing. */
+.marks {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.colon {
+  position: absolute;
+  left: 61.5%;
+  top: 73.5%;
+  transform: translate(-50%, -50%);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.4vw, 4.4rem);
+  line-height: 0.66;
+  color: var(--red);
+  will-change: transform, opacity;
+}
+
+/* --- Content --------------------------------------------------------------- */
+
+.content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  padding-inline: var(--edge);
+  padding-block: clamp(5.5rem, 13vh, 8.5rem) var(--edge);
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.content a {
+  pointer-events: auto;
+}
+
+.top,
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.bottom {
+  align-items: flex-end;
+}
+
+.meta {
+  color: var(--fg-dim);
+  will-change: opacity;
+}
+
+.fig {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  text-align: right;
+  color: var(--fg-faint);
+}
+
+.fig i {
+  font-style: normal;
+  color: var(--fg-dim);
+}
+
+/* --- Headline -------------------------------------------------------------- */
+
+/* The type block sits high and tight so the lower third belongs entirely to
+   the gesture. The two fighting for the same band is what buried the CTAs
+   under a forearm. */
+.body {
+  max-width: 100%;
+  margin-top: clamp(1.5rem, 5vh, 4rem);
+}
+
+.bottom {
+  margin-top: auto;
+}
+
+.headline {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 7.2vw, 7.6rem);
+  line-height: 0.93;
+  letter-spacing: -0.045em;
+  color: var(--paper);
+}
+
+.line {
+  display: block;
+  will-change: filter;
+}
+
+/* Deep enough to clear the descender on "yet." — the mask must never be what
+   crops a letterform. */
+.mask {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-bottom: 0.26em;
+  margin-bottom: -0.26em;
+  perspective: 700px;
+}
+
+.char {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+
+.lead {
+  margin-top: clamp(1.25rem, 3vh, 2rem);
+  max-width: 36ch;
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: rgba(241, 241, 237, 0.6);
+  will-change: opacity, transform;
+}
+
+/* The phrase the whole studio is named after gets the only full white. */
+.leadKey {
+  color: var(--paper);
+}
+
+/* --- Actions --------------------------------------------------------------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: clamp(1.6rem, 4vh, 2.6rem);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.95rem 1.35rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  will-change: opacity, transform;
+  transition: background 0.5s var(--e-quart), color 0.5s var(--e-quart),
+    border-color 0.5s var(--e-quart);
+}
+
+.primary {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* The one place red answers a gesture. */
+.primary:hover,
+.primary:focus-visible {
+  background: var(--red);
+  color: var(--paper);
+}
+
+.primary i {
+  font-style: normal;
+  transition: transform 0.5s var(--e-expo);
+}
+
+.primary:hover i {
+  transform: translate(3px, -3px);
+}
+
+.secondary {
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+.secondary:hover,
+.secondary:focus-visible {
+  border-color: var(--fg);
+}
+
+/* --- Bottom row ------------------------------------------------------------ */
+
+.avail,
+.scroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  flex: none;
+  animation: pulse 2.8s var(--e-cubic) infinite;
+}
+
+.scroll i {
+  font-style: normal;
+  animation: nudge 2.6s var(--e-cubic) infinite;
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .scroll i {
+    animation: none;
+  }
+}
+
+/* --- Portrait --------------------------------------------------------------
+   The hands move to the middle of the frame and the type sits above them, so
+   the gesture is still the centre of the composition rather than a crop. */
+@media (max-width: 780px) {
+  .colon {
+    left: 52%;
+    top: 74.5%;
+  }
+  .body {
+    max-width: none;
+  }
+  .headline {
+    font-size: clamp(2.3rem, 11.5vw, 4rem);
+  }
+  .lead {
+    max-width: 30ch;
+    font-size: var(--t-body);
+  }
+  .content {
+    padding-block: clamp(4.5rem, 12vh, 6rem) var(--edge);
+    justify-content: flex-start;
+    gap: clamp(1.5rem, 4vh, 2.5rem);
+  }
+  /* Two readings at the bottom is enough on a narrow frame. */
+  .avail {
+    display: none;
+  }
+  .fig i {
+    display: none;
+  }
+}

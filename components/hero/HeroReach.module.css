@@ -103,7 +103,7 @@
 .headline {
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: clamp(2.4rem, 6.7vw, 7.1rem);
+  font-size: clamp(2.3rem, 6.2vw, 6.6rem);
   line-height: 0.93;
   letter-spacing: -0.045em;
   color: var(--paper);
@@ -129,6 +129,27 @@
   display: inline-block;
   transform-origin: 50% 100%;
   will-change: transform, opacity;
+}
+
+/* The two supporting lines. Centred with the headline, held to a measure so
+   they never run the full width of a wide frame. */
+.lead {
+  margin: clamp(1.1rem, 2.6vh, 1.9rem) auto 0;
+  max-width: 46ch;
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: rgba(241, 241, 237, 0.6);
+  will-change: opacity, transform;
+}
+
+.logic {
+  margin-top: clamp(0.55rem, 1.4vh, 0.9rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  letter-spacing: -0.01em;
+  color: var(--paper);
+  will-change: opacity, transform;
 }
 
 /* --- Actions --------------------------------------------------------------- */
@@ -248,7 +269,11 @@
     max-width: none;
   }
   .headline {
-    font-size: clamp(2.3rem, 11.5vw, 4rem);
+    font-size: clamp(2.1rem, 10.5vw, 3.6rem);
+  }
+  .lead {
+    max-width: 32ch;
+    font-size: var(--t-body);
   }
   .content {
     padding-block: clamp(4.5rem, 12vh, 6rem) var(--edge);

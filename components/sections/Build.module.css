@@ -1,0 +1,351 @@
+.section {
+  padding-bottom: 0;
+}
+
+/* Three states, roughly a viewport of scrolling each. Native sticky, like
+   every other held section — no pin, no spacer. */
+.pinWrap {
+  position: relative;
+  height: 380vh;
+}
+
+.pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-block: clamp(5rem, 11vh, 7.5rem) clamp(1.5rem, 4vh, 2.5rem);
+  border-top: 1px solid var(--line);
+}
+
+.lead {
+  flex: none;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  letter-spacing: -0.01em;
+  color: var(--fg-dim);
+  max-width: 44ch;
+}
+
+/* --- The stage --------------------------------------------------------------
+   The word is the whole of it. Everything inside is absolute and moved by
+   transform only, and the frame is what crops the specimen. */
+
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-block: clamp(1rem, 3vh, 2rem);
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+}
+
+/* The rules the specimen is set on — one grid under many sizes. */
+.rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+  opacity: 0;
+}
+
+.count {
+  position: absolute;
+  top: 0.55rem;
+  right: 0;
+  color: var(--fg-faint);
+}
+
+.count b {
+  color: var(--red);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- The word ---------------------------------------------------------------
+   The plate carries the type; the rig's bands, the pieces and the cut lines
+   all inherit from it, so tracking and width can be moved in one place and
+   everything follows. */
+
+.plate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.8rem, min(21vw, 35vh), 19rem);
+  line-height: 0.86;
+  letter-spacing: 0.012em;
+  text-transform: uppercase;
+  font-stretch: 94%;
+  white-space: nowrap;
+  will-change: transform;
+  z-index: 2;
+  /* The colour is chosen, not blended into: each pick lands as a change. */
+  transition: color 0.3s var(--e-quart);
+}
+
+/* Sits exactly over the real word and hands off to it without moving. */
+.tiles {
+  will-change: transform, opacity;
+}
+
+/* The construction still showing: where the word was cut to build it. */
+.cuts {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(241, 241, 237, 0.9) 0 1px,
+      transparent 1px var(--cw, 40px)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(241, 241, 237, 0.9) 0 1px,
+      transparent 1px var(--ch, 40px)
+    );
+}
+
+/* --- What the system turns into --------------------------------------------
+   Five deliverables set on the frame's rules, each one labelled and each one
+   running its own loop. They sit on the rule rather than under it. */
+
+.asset {
+  position: absolute;
+  width: clamp(96px, 13vw, 200px);
+  transform: translateY(-100%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.assetLabel {
+  display: block;
+  color: var(--fg-faint);
+  padding-bottom: 0.5rem;
+}
+
+/* --- The colour, being chosen ----------------------------------------------
+   A picker column on the right: the value the word is taking at this moment,
+   its hex beside it, and the rest of the ramp still to come. */
+
+.picker {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 1px;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+.stop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  height: clamp(22px, 3.4vh, 30px);
+}
+
+.stop b {
+  font-weight: 400;
+  color: var(--fg-faint);
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.35s var(--e-quart), transform 0.5s var(--e-expo);
+}
+
+.stop i {
+  display: block;
+  width: clamp(26px, 2.4vw, 34px);
+  height: 100%;
+  outline: 1px solid rgba(241, 241, 237, 0.14);
+  outline-offset: -1px;
+  opacity: 0.42;
+  transition: width 0.45s var(--e-expo), opacity 0.35s var(--e-quart);
+}
+
+.stop[data-on='true'] b {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--fg);
+}
+
+.stop[data-on='true'] i {
+  width: clamp(46px, 4.6vw, 68px);
+  opacity: 1;
+}
+
+/* --- Foot ------------------------------------------------------------------ */
+
+.foot {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  color: var(--fg-dim);
+  max-width: 52ch;
+}
+
+.note i {
+  color: var(--red);
+  flex: none;
+  font-style: normal;
+}
+
+.noteText {
+  display: block;
+  color: var(--fg);
+  will-change: transform, opacity;
+}
+
+/* --- Rail: the three states, read across ----------------------------------- */
+
+.rail {
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2rem);
+}
+
+.railItem {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  padding-bottom: 0.5rem;
+  color: var(--fg-faint);
+  white-space: nowrap;
+  transition: color 0.45s var(--e-quart);
+}
+
+.railItem[data-state='done'] {
+  color: var(--fg-dim);
+}
+
+.railItem[data-state='on'] {
+  color: var(--fg);
+}
+
+.railNum {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.railItem[data-state='on'] .railNum {
+  color: var(--red);
+  opacity: 1;
+}
+
+/* The bar under the live state — the only thing that moves in the rail. */
+.railBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.6s var(--e-expo);
+}
+
+.railItem[data-state='on'] .railBar {
+  transform: scaleX(1);
+}
+
+/* --- Reduced-motion layout ------------------------------------------------- */
+
+.staticView {
+  display: none;
+  padding-block: clamp(2rem, 6vh, 4rem) var(--sect-y);
+}
+
+.staticList {
+  display: grid;
+  gap: clamp(1.5rem, 4vh, 3rem);
+  margin-top: clamp(1.5rem, 4vh, 3rem);
+}
+
+.staticList li {
+  border-top: 1px solid var(--line);
+  padding-top: clamp(1rem, 3vh, 2rem);
+}
+
+.staticWord {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-lg);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  margin-block: 0.3rem 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pinWrap {
+    display: none;
+  }
+  .staticView {
+    display: block;
+  }
+}
+
+@media (max-width: 860px) {
+  /* Portrait has the height but not the width: the copy sits under the rail
+     rather than beside it, and the specimen thins out. */
+  .foot {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+  }
+  .rail {
+    gap: 1rem;
+    order: -1;
+  }
+  .note {
+    font-size: var(--t-micro);
+  }
+  .plate {
+    font-size: clamp(2.2rem, min(21vw, 22vh), 5rem);
+  }
+  .asset {
+    width: clamp(66px, 24vw, 110px);
+  }
+  /* The picker lies down across the top: a column beside the word would take
+     width the word does not have to give. */
+  .picker {
+    top: 0;
+    right: 0;
+    transform: none;
+    grid-auto-flow: column;
+    align-items: start;
+  }
+  .stop {
+    height: 14px;
+  }
+  .stop b {
+    display: none;
+  }
+  .stop i {
+    width: 18px;
+  }
+  .stop[data-on='true'] i {
+    width: 18px;
+    height: 22px;
+  }
+}

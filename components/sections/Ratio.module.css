@@ -166,9 +166,10 @@
   will-change: transform;
 }
 
+/* Only the counter lives here now, so it holds the right edge. */
 .mapFoot {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: baseline;
   gap: 1.5rem;
   padding-top: 1.25rem;

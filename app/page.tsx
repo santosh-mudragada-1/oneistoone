@@ -8,12 +8,15 @@ import PageFrame from '@/components/PageFrame';
 import Preloader from '@/components/Preloader';
 import SmoothScroll from '@/components/SmoothScroll';
 import Hero from '@/components/hero/HeroReach';
+import Build from '@/components/sections/Build';
 import Contact from '@/components/sections/Contact';
 import Footer from '@/components/sections/Footer';
 import Playground from '@/components/sections/Playground';
 import Process from '@/components/sections/Process';
 import Ratio from '@/components/sections/Ratio';
 import Services from '@/components/sections/Services';
+import Situations from '@/components/sections/Situations';
+import Think from '@/components/sections/Think';
 import { ScrollTrigger } from '@/lib/gsap';
 
 export default function Page() {
@@ -43,9 +46,12 @@ export default function Page() {
       <main id="main">
         <Hero ready={ready} />
         <Ratio />
-        <Services />
+        <Think />
+        <Build />
         <Process />
+        <Services />
         <Playground />
+        <Situations />
         <Contact />
       </main>
 

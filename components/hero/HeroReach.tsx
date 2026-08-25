@@ -18,7 +18,7 @@ import s from './HeroReach.module.css';
  * scroll are all one choreography rather than three systems.
  */
 
-const LINES = ['We design', "what doesn't", 'exist yet.'];
+const LINES = ['We build brands', 'that hold together.'];
 
 export default function HeroReach({ ready }: { ready: boolean }) {
   const root = useRef<HTMLElement>(null);
@@ -107,7 +107,7 @@ export default function HeroReach({ ready }: { ready: boolean }) {
 
       if (reduced) {
         Object.assign(d, { settle: 1, presence: 1, ascii: 0.75, cursor: 0 });
-        gsap.set([CHARS, `.${s.actions} > *`, `.${s.meta}`], {
+        gsap.set([CHARS, `.${s.lead}`, `.${s.logic}`, `.${s.actions} > *`, `.${s.meta}`], {
           opacity: 1,
           y: 0,
           scale: 1,
@@ -146,12 +146,18 @@ export default function HeroReach({ ready }: { ready: boolean }) {
           { filter: 'blur(0px)', duration: 1.5, ease: 'power2.out', stagger: 0.08 },
           0.85
         )
-        /* 5 — the actions, last. */
+        /* 5 — the two supporting lines, then the action. */
+        .fromTo(
+          [`.${s.lead}`, `.${s.logic}`],
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 1, stagger: 0.12 },
+          1.45
+        )
         .fromTo(
           `.${s.actions} > *`,
           { opacity: 0, y: 12 },
           { opacity: 1, y: 0, duration: 0.9, stagger: 0.09 },
-          1.6
+          1.8
         );
 
       return () => {
@@ -189,7 +195,7 @@ export default function HeroReach({ ready }: { ready: boolean }) {
           <div className={s.body}>
             <h1 className={s.headline}>
               <span className="sr-only">
-                We design what doesn&rsquo;t exist yet. 1:1 — Creative Studio.
+                We build brands that hold together. 1:1 — Creative Studio.
               </span>
               {LINES.map((line, li) => (
                 <span className={s.line} key={line} aria-hidden="true">
@@ -204,13 +210,16 @@ export default function HeroReach({ ready }: { ready: boolean }) {
               ))}
             </h1>
 
+            <p className={s.lead}>
+              Strategy-led design across identity, digital, product, packaging and space.
+            </p>
+
+            <p className={s.logic}>One logic. Every expression.</p>
+
             <div className={s.actions}>
               <a className={s.primary} href="#contact">
                 Start a project
                 <i aria-hidden="true">↗</i>
-              </a>
-              <a className={s.secondary} href="#approach">
-                Explore
               </a>
             </div>
           </div>

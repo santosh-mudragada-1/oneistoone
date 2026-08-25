@@ -1,0 +1,246 @@
+.section {
+  padding-bottom: var(--sect-y);
+}
+
+/* Held by native sticky like every other held section here — no pin, no
+   spacer, nothing that can take the wheel. */
+.pinWrap {
+  position: relative;
+  height: 420vh;
+}
+
+.stage {
+  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-block: clamp(5.5rem, 12vh, 8rem) clamp(1.5rem, 4vh, 2.5rem);
+  border-top: 1px solid var(--line);
+}
+
+/* The strand runs the whole height of the frame, behind everything: the rules
+   laid across it are what divide it, not breaks in it. */
+.helix {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.head,
+.rows,
+.bridge {
+  position: relative;
+  z-index: 1;
+}
+
+.head {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.opener {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  letter-spacing: -0.01em;
+  color: var(--fg-dim);
+  flex: none;
+}
+
+/* --- The three parts -------------------------------------------------------
+   Three equal bands, ruled off from each other. The rules run the full measure
+   so they cross the strand as well as the type. */
+
+.rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  margin-block: clamp(1rem, 3vh, 2rem);
+  border-block: 1px solid var(--line);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(0.5rem, 1.4vw, 1rem);
+  /* Keeps the type clear of the strand. */
+  padding-right: 38%;
+  transition: opacity 0.45s var(--e-quart);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+/* Holding one line dims the other two, and brackets its length of the strand. */
+.rows[data-holding='true'] .row:not([data-hot='true']) {
+  opacity: 0.3;
+}
+
+.idx {
+  color: var(--fg-faint);
+  align-self: center;
+  transition: color 0.35s var(--e-quart);
+}
+
+.row[data-hot='true'] .idx {
+  color: var(--fg);
+}
+
+/* The value this length is carrying. Three different numbers becoming one. */
+.hex {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+  transition: opacity 0.35s var(--e-quart);
+}
+
+.row[data-hot='true'] .hex {
+  opacity: 1;
+}
+
+/* The rig's host carries the type and every band inherits from it, so nothing
+   here may be `display: block`. */
+.host {
+  display: inline-block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 3.2vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* --- The close -------------------------------------------------------------
+   Set as a fourth line, on the same measure and at the same size as the three
+   above it, directly beneath them: the next thing the eye reaches rather than
+   something parked in the corner. */
+
+.bridge {
+  flex: none;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.5rem, 1.4vw, 1rem);
+  padding-top: clamp(0.9rem, 2.6vh, 1.6rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 3.2vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--fg);
+  opacity: 0;
+  will-change: opacity;
+}
+
+.bridge i {
+  width: 0.62em;
+  height: 0.62em;
+  background: var(--red);
+}
+
+.state {
+  color: var(--fg-faint);
+  white-space: nowrap;
+  transition: color 0.6s var(--e-quart);
+}
+
+.state b {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.state[data-on='true'] b {
+  color: var(--red);
+}
+
+/* --- Reduced-motion layout ------------------------------------------------- */
+
+.staticView {
+  display: none;
+  padding-block: clamp(2rem, 6vh, 4rem) 0;
+}
+
+.staticList {
+  display: grid;
+  gap: clamp(1rem, 3vh, 2rem);
+  margin-block: clamp(1.5rem, 4vh, 3rem);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(1.5rem, 4vh, 3rem);
+}
+
+.staticList li {
+  display: grid;
+  gap: 0.35rem;
+  border-left: 2px solid var(--red);
+  padding-left: 1rem;
+}
+
+.staticList li[data-part='1'] {
+  border-left-color: #2f4fd8;
+}
+
+.staticList li[data-part='2'] {
+  border-left-color: #0e8a55;
+}
+
+.staticSplit {
+  color: var(--fg-faint);
+  text-transform: none;
+}
+
+.staticJoined {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-md);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pinWrap {
+    display: none;
+  }
+  .staticView {
+    display: block;
+  }
+}
+
+/* Narrow: the strand moves to the right edge and thins out, and the type takes
+   the full measure across it rather than being squeezed beside it. */
+@media (max-width: 780px) {
+  .row {
+    padding-right: 0;
+  }
+  .host {
+    font-size: clamp(0.9rem, 4.6vw, 1.7rem);
+  }
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .row {
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+  }
+  .hex {
+    display: none;
+  }
+  .bridge {
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+  }
+}

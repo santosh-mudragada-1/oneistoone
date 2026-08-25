@@ -78,64 +78,6 @@
   inset: 0;
 }
 
-.tileTop,
-.tileBottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.7rem 0.8rem;
-  pointer-events: none;
-}
-
-.tileTop {
-  top: 0;
-  color: var(--fg-dim);
-}
-
-.tileBottom {
-  bottom: 0;
-  background: linear-gradient(to top, rgba(10, 10, 10, 0.9), transparent);
-}
-
-.tileCode {
-  color: var(--red);
-}
-
-.tileTitle {
-  display: block;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: clamp(0.95rem, 1.5vw, 1.4rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-  color: var(--fg);
-}
-
-.tileTag {
-  display: block;
-  margin-top: 0.3rem;
-  color: var(--fg-faint);
-}
-
-.tileHint {
-  color: var(--red);
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.4s var(--e-quart), transform 0.5s var(--e-expo);
-  white-space: nowrap;
-}
-
-.tile:hover .tileHint,
-.tile:focus-visible .tileHint {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* --- Outro ---------------------------------------------------------------- */
 
 .outro {

@@ -1,0 +1,45 @@
+/* Five things a brand ends up as, drawn from rectangles and circles and kept
+   moving. One field, one line weight, one accent — so the five read as a set
+   rather than as five illustrations. */
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--fg);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+}
+
+.solid {
+  fill: var(--fg);
+  fill-opacity: 0.14;
+}
+
+.ink {
+  fill: var(--fg);
+  fill-opacity: 0.85;
+}
+
+.red {
+  fill: var(--red);
+}
+
+.redLine {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1;
+}
+
+.dash {
+  fill: none;
+  stroke: var(--fg);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}

@@ -9,10 +9,12 @@ import s from './Nav.module.css';
 type NavItem = { id: string; label: string; idx: string; covers: string[] };
 
 const ITEMS: NavItem[] = [
-  { id: 'studio', label: 'Studio', idx: '02', covers: ['studio'] },
-  { id: 'approach', label: 'Approach', idx: '03', covers: ['approach', 'process'] },
-  { id: 'playground', label: 'Playground', idx: '05', covers: ['playground'] },
-  { id: 'contact', label: 'Contact', idx: '06', covers: ['contact', 'footer'] },
+  { id: 'studio', label: 'Studio', idx: '02', covers: ['studio', 'think'] },
+  { id: 'build', label: 'Build', idx: '04', covers: ['build'] },
+  { id: 'process', label: 'Process', idx: '05', covers: ['process'] },
+  { id: 'approach', label: 'Practice', idx: '06', covers: ['approach'] },
+  { id: 'playground', label: 'Playground', idx: '07', covers: ['playground', 'clients'] },
+  { id: 'contact', label: 'Contact', idx: '09', covers: ['contact', 'footer'] },
 ];
 
 export default function Nav() {

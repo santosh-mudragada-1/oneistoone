@@ -3,15 +3,13 @@
 import { useRef } from 'react';
 import { useSketch } from '@/lib/hooks';
 
-/* Hand-placed so the path across the page is irregular — a route, not a
-   timeline. Normalised to the canvas box. */
+/* Four moves, hand-placed so the path across the page is irregular — a route,
+   not a timeline. Normalised to the canvas box. */
 const NODES = [
-  [0.08, 0.26],
-  [0.27, 0.7],
-  [0.45, 0.17],
-  [0.62, 0.78],
-  [0.78, 0.33],
-  [0.92, 0.68],
+  [0.09, 0.24],
+  [0.36, 0.74],
+  [0.64, 0.2],
+  [0.91, 0.66],
 ] as const;
 
 const PAPER = 'rgba(241,241,237,';

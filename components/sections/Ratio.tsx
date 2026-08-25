@@ -10,10 +10,10 @@ import s from './Ratio.module.css';
 
 /** The studio's name read as an argument: each pair is one 1:1 mapping. */
 const PAIRS = [
-  { a: 'Idea', b: 'Form', note: 'No translation loss.' },
-  { a: 'Noise', b: 'Signal', note: 'Edit until it stops.' },
-  { a: 'Question', b: 'System', note: 'Answers that repeat.' },
-  { a: 'Instinct', b: 'Evidence', note: 'Both, or neither.' },
+  { a: 'Business', b: 'Brand' },
+  { a: 'Strategy', b: 'System' },
+  { a: 'Insight', b: 'Experience' },
+  { a: 'Vision', b: 'Reality' },
 ];
 
 /* Where the background geometry sits for each pair. Nothing here should be
@@ -30,7 +30,6 @@ export default function Ratio() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const aRef = useRef<HTMLSpanElement>(null);
   const bRef = useRef<HTMLSpanElement>(null);
-  const noteRef = useRef<HTMLSpanElement>(null);
   const colonRef = useRef<HTMLSpanElement>(null);
   const numRef = useRef<HTMLSpanElement>(null);
   const lineA = useRef<HTMLSpanElement>(null);
@@ -54,7 +53,6 @@ export default function Ratio() {
       const [rigA, rigB] = rigs;
       rigA.set(PAIRS[0].a);
       rigB.set(PAIRS[0].b);
-      if (noteRef.current) noteRef.current.textContent = PAIRS[0].note;
       if (numRef.current) numRef.current.textContent = '01';
 
       /* Word A is set right on wide viewports and left in portrait; the bands
@@ -93,8 +91,7 @@ export default function Ratio() {
          * rig has cleaned up its old bands; the atmosphere behind it is still
          * travelling, which is the point of it.
          */
-        const seq = createSequencer((next, from, done) => {
-          const dir = next > from ? 1 : -1;
+        const seq = createSequencer((next, _from, done) => {
           setActive(next);
           const p = PAIRS[next];
           const at = ATMOS[next];
@@ -108,22 +105,14 @@ export default function Ratio() {
           rigB.swap(p.b, tl, 0.09);
           tl.call(done, undefined, rigB.duration + 0.12);
 
-          tl.to(colonRef.current, { scaleY: 0.62, x: 5 * dir, duration: 0.34, ease: 'power2.in' }, 0)
-            .to(colonRef.current, { scaleY: 1, x: 0, duration: 0.95, ease: 'expo.out' }, 0.34)
+          tl.to(colonRef.current, { scaleY: 0.62, duration: 0.34, ease: 'power2.in' }, 0)
+            .to(colonRef.current, { scaleY: 1, duration: 0.95, ease: 'expo.out' }, 0.34)
 
-            .to(noteRef.current, { opacity: 0, y: -10 * dir, duration: 0.38, ease: 'power2.in' }, 0)
             .add(() => {
-              if (noteRef.current) noteRef.current.textContent = p.note;
               if (numRef.current) {
                 numRef.current.textContent = String(next + 1).padStart(2, '0');
               }
             }, 0.42)
-            .fromTo(
-              noteRef.current,
-              { opacity: 0, y: 12 * dir },
-              { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out' },
-              0.5
-            )
 
             /* The background settles into its new arrangement over a longer
                span than the type, so it is always still moving when the
@@ -173,9 +162,9 @@ export default function Ratio() {
       data-surface="ink"
       ref={root}
     >
-      <Marker index="02" title="The Studio" meta="One ratio, four readings" />
+      <Marker index="02" title="We Connect What Matters" meta="Four readings" />
 
-      <p className="sr-only">{PAIRS.map((p) => `${p.a} to ${p.b}. ${p.note}`).join(' ')}</p>
+      <p className="sr-only">{PAIRS.map((p) => `${p.a} to ${p.b}.`).join(' ')}</p>
 
       <div className={s.pinWrap} ref={wrapRef} aria-hidden="true">
         <div className={s.mapping}>
@@ -189,7 +178,7 @@ export default function Ratio() {
           </div>
 
           <div className={`${s.mapHead} mono`}>
-            <span>The studio, in one ratio</span>
+            <span>We connect what matters</span>
             <div className={s.modules}>
               {PAIRS.map((p, i) => (
                 <span className={s.module} key={p.a} data-on={i === active} />
@@ -210,9 +199,6 @@ export default function Ratio() {
           </div>
 
           <div className={`${s.mapFoot} mono`}>
-            <span className={s.note}>
-              <span ref={noteRef} />
-            </span>
             <span className={`${s.count} faint`}>
               {String(active + 1).padStart(2, '0')} / {String(PAIRS.length).padStart(2, '0')}
             </span>
@@ -229,7 +215,6 @@ export default function Ratio() {
               <span className={s.staticWords}>
                 {p.a} <span className="faint">/</span> {p.b}
               </span>
-              <span className={`${s.staticNote} mono`}>{p.note}</span>
             </span>
           </li>
         ))}

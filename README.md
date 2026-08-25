@@ -20,7 +20,7 @@ the whole system:
   gesture: two hands, reaching, brought together by the reader.
 - **Correspondence** → the colon is the brand's operator. It stays red wherever
   it separates two things, and section 02 reads the name as an argument:
-  Idea : Form, Noise : Signal.
+  Business : Brand, Strategy : System, Insight : Experience, Vision : Reality.
 
 Nothing on the site claims clients, projects, awards or metrics, because there
 aren't any yet. The proof is the site itself and the six live experiments.
@@ -95,16 +95,109 @@ components/
   GridOverlay.tsx      press G to reveal the 12-column grid
   Preloader.tsx        load sequence and curtain
   Nav.tsx              section tracking, surface-aware bar, overlay menu
-  sections/            01 Hero … 07 Footer
+  sections/            02 Ratio · 03 Think · 04 Build · 05 Process
+                       06 Services · 07 Playground · 08 Situations
+                       09 Contact · 10 Footer
   hero/                the headline composition
   type/                sliceRig — the banded word swap
-  canvas/              service plates, process diagram, experiment host
+                       shatter — a word cut into a grid of its own pieces
+  ui/                  Marker, BrandAsset, SituationLoop
+  canvas/              discipline plates, process route, the helix, experiments
 lib/
   experiments.ts       the six generative sketches
   noise.ts             value noise / seeded PRNG
   sequence.ts          one stage change at a time, latest target wins
   hooks.ts             gsap context, sketch ticker, magnetic, media queries
 ```
+
+## The argument, section by section
+
+The page is one argument made five ways, and each section is the same idea in
+a different material:
+
+| | | |
+|---|---|---|
+| 02 | **We Connect What Matters** | four pairs, re-cut one into the other |
+| 03 | **The Way We Think** | one strand, made in three places, brought to one colour |
+| 04 | **What We Build** | one word built, coloured, then turned into deliverables |
+| 05 | **Our Process** | four moves along a route |
+| 06 | **What We Do** | five disciplines, five live plates |
+| 08 | **Who We Work With** | one ground, three closed loops in solid geometry |
+
+**Three sections carry a held stage, and none of them pins.** Think, Build and
+Process are all `position: sticky` with ScrollTrigger reporting progress only —
+see the wheel rule below. Their word transitions all run through the same
+`sliceRig` and the same `sequence.ts` gate, so a fast scroll gets whole
+transitions in every one of them rather than three different behaviours.
+
+**03 — one strand, made in three places.** A business has one DNA. Strategy,
+brand and marketing are three lengths of the same strand, and when each of them
+is made somewhere else, each comes back in a different palette. `HelixField.tsx`
+draws a double helix turning on its vertical axis down the whole height of the
+frame — **one continuous strand**; the rules laid across it are what divide it
+into three parts, not breaks in the thing itself. Ink and grey run all the way
+down; the accent is red, then blue, then green.
+
+The two parts whose accent is **not** the studio's own **pulse**, each on its
+own beat, so the strand is visibly out of time with itself; the part that is
+already red never pulses and never drains, because red is what settled looks
+like. Each line carries the live hex of its own length of the strand, so what
+the reader is watching is spelled out: three different values becoming one.
+Holding a line dims the other two and brackets its length of the strand, which
+is what ties the text to the graphic.
+
+Scrolling brings every accent to the studio's own red, **one part at a time**,
+and re-cuts each line as its part resolves. *We bring it together.* is set as a
+fourth line directly beneath the three, on the same measure and at the same
+size with a red mark in the index column — where the eye goes when it has
+finished reading, rather than parked in a corner. It is a pure function of scroll
+progress, so scrolling back takes the colours apart again and puts the original
+lines back. Two details worth keeping: the turn is a **separate always-running
+loop** (one revolution a cycle, periodic by construction, no seam), and a colour
+crossing from blue to red **passes through neutral grey rather than violet** —
+interpolating straight would invent a fourth hue that belongs to neither
+palette, where draining to grey reads as the old one leaving and the studio's
+own arriving. The cut positions are measured off the actual rules on refresh, so
+the segment boundaries and the hairlines are the same line.
+
+**04 — the word is the object, and it is put through what a brand is put
+through.** `shatter.ts` cuts the word into a grid of cells, each a full copy of
+it clipped to one rectangle — the band-shear trick in two directions — so the
+scattered state is fragments of letterforms rather than letters. **BUILD**
+calls them into place one at a time, left to right, and hands off to the real
+word only once the pieces are exactly on top of it; it lands whole with its
+construction still showing. **REFINE** removes the construction and picks the
+colour: the picker steps down its ramp and the word takes each value in turn —
+grey where it lands, through the chromatic stops, out at off-white, which is
+the section's own ink, so there is nothing to reconcile when the picker leaves.
+Tracking closes from `0.012em` to `-0.052em` and the width settles from 94% to
+116% at the same time. **SCALE** surrounds the finished word with what the
+system turns into — a mark, a site, an app, a pack, a piece of motion — five
+SVG deliverables in one 120 × 90 field (`BrandAsset.tsx`), each running its own
+closed loop: a whole rotation, a whole content block, a carousel whose fourth
+frame is its first, one dash period of marching ants, a playhead that fades out
+at one edge as it fades in at the other.
+
+**06 — every discipline gets its own field.** Brand is a modular mark system,
+Digital is interface fragments under a travelling cursor, Product is a
+packaging dieline with its creases and dimensions, Space is a plan with a door
+swing and a wayfinding marker on the circulation route, Marketing & Growth is a
+closed loop with the bars it returns. The plate's mode is the row index, so the
+order of `SERVICES` is the order of the artwork.
+
+**08 — three closed loops in solid geometry.** The section opens on the ground
+everything is built from, then three framed pieces. `SituationLoop.tsx` draws
+all three from filled blocks rather than wireframe: **rebuild** re-arranges the
+same six parts three ways and back to the first, because the business already
+has what it needs in the wrong order — the parts are cut to a four-column
+module (a cell is 14, a gutter is 2) so the arrangement they return to closes
+into a single square with the same gap between every one of them; **grow** opens one point outward for
+ever, modules born at the centre on a fixed ratio and leaving at the edge, the
+whole field turning ninety degrees a cycle onto its own four-fold symmetry;
+**connect** takes six runs at six heights on six baselines and brings them onto
+one baseline, one height and one rhythm — still six of them, hairline gaps
+kept, because that is the argument. Under reduced motion each loop holds a
+still frame.
 
 ## Conventions worth knowing
 

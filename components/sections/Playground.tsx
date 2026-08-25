@@ -9,7 +9,10 @@ import s from './Playground.module.css';
 
 /* `col`/`row` place each card on the 12-column grid; `push` offsets it within
    its row so the pair never shares a baseline. `drift` is the transform-only
-   parallax — the last trace of the old horizontal track. */
+   parallax — the last trace of the old horizontal track.
+   The tiles carry no caption: the artwork is the whole of it. `title`, `tag`
+   and `hint` survive as the accessible name and the cursor's label, which is
+   where a reader who needs them will find them. */
 const EXPERIMENTS = [
   {
     code: 'E01',
@@ -167,7 +170,7 @@ export default function Playground() {
       data-surface="ink"
       ref={root}
     >
-      <Marker index="05" title="Playground" meta="Live — running in your browser" />
+      <Marker index="07" title="Playground" meta="Live — running in your browser" />
 
       <div className={s.intro}>
         <p className={s.introWord} aria-hidden="true">
@@ -175,8 +178,8 @@ export default function Playground() {
           <em>Ground</em>
         </p>
         <p className={`${s.introNote} mono`}>
-          No client. No brief. Just the next idea — every piece here is drawn in code, in real
-          time.
+          We explore how business, brand, design, technology and experience can connect in
+          unexpected ways.
         </p>
       </div>
 
@@ -210,17 +213,6 @@ export default function Playground() {
                 <ExperimentCanvas index={i} seed={seeds[i]} active={active === i || coarse} />
               </span>
 
-              <span className={`${s.tileTop} mono mono--micro`}>
-                <span className={s.tileCode}>{exp.code}</span>
-                <span className={s.tileHint}>{exp.hint}</span>
-              </span>
-
-              <span className={s.tileBottom} aria-hidden="true">
-                <span>
-                  <span className={s.tileTitle}>{exp.title}</span>
-                  <span className={`${s.tileTag} mono mono--micro`}>{exp.tag}</span>
-                </span>
-              </span>
             </button>
           );
         })}

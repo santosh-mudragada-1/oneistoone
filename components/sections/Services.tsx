@@ -10,13 +10,17 @@ import s from './Services.module.css';
 /* One type scale for every discipline, all set from the same left edge —
    none of them outranks another. Nothing in this list is a link: it is a list
    of what the studio does, and the preview plate is the only thing that moves
-   in response to the reader. */
+   in response to the reader. The plate's mode is the row index, so the order
+   here is also the order of the artwork in `ServiceSketch`. */
 const SERVICES = [
-  { word: 'Brand', desc: 'Identity systems, naming, art direction' },
-  { word: 'Product', desc: 'Interfaces, design systems, prototypes' },
-  { word: 'Digital', desc: 'Sites, editorial, real-time graphics' },
-  { word: 'Motion', desc: 'Titles, loops, interaction choreography' },
-  { word: 'Experimental', desc: 'Research, tools, work with no brief yet' },
+  { word: 'Brand', desc: 'Strategy · Identity · Naming · Guidelines' },
+  { word: 'Digital', desc: 'Web.UX/UI · Products · Platforms · Design Systems' },
+  { word: 'Product', desc: 'Industrial Design · FMCG · Packaging' },
+  { word: 'Space', desc: 'Interiors · Retail · Wayfinding · Environmental Graphics' },
+  {
+    word: 'Marketing & Growth',
+    desc: 'Go-to-market · Campaigns · Content strategy · Digital marketing · SEO · CRO',
+  },
 ];
 
 export default function Services() {
@@ -87,7 +91,7 @@ export default function Services() {
       data-surface="paper"
       ref={root}
     >
-      <Marker index="03" title="What We Do" meta="Five disciplines, one standard" />
+      <Marker index="06" title="What We Do" meta="Different disciplines. One connected practice." />
 
       {/* Only worth saying where there is a pointer to hover with. */}
       {!coarse ? (

@@ -1,0 +1,24 @@
+/* The scattered state of a word: a grid of copies of itself, each clipped to
+   one cell, each holding its own offset until it is called into place. */
+
+.field {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* The piece currently being placed. One at a time, and never more. */
+.tile[data-live='true'] {
+  color: var(--red);
+}

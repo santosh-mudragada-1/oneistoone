@@ -10,12 +10,10 @@ import Marker from '../ui/Marker';
 import s from './Process.module.css';
 
 const STAGES = [
-  { word: 'Question', note: 'Start with the brief behind the brief.' },
-  { word: 'Explore', note: 'Go wide before going right.' },
-  { word: 'Make', note: 'Build it to find out.' },
-  { word: 'Break', note: 'Push until something gives.' },
-  { word: 'Refine', note: 'Remove, then remove again.' },
-  { word: 'Release', note: 'Ship it, then watch it.' },
+  { word: 'Discover', note: 'Understand the business, market, audience and opportunity.' },
+  { word: 'Define', note: 'Turn insight into positioning, direction and system.' },
+  { word: 'Create', note: 'Build the identity and experiences across every relevant touchpoint.' },
+  { word: 'Scale', note: 'Create the tools and guidelines that keep the brand consistent as it grows.' },
 ];
 
 export default function Process() {
@@ -145,7 +143,7 @@ export default function Process() {
       data-surface="ink"
       ref={root}
     >
-      <Marker index="04" title="How We Think" meta="Six stages, in order" />
+      <Marker index="05" title="Our Process" meta="Four moves." />
 
       <p className="sr-only">{STAGES.map((x) => `${x.word}. ${x.note}`).join(' ')}</p>
 
@@ -155,7 +153,7 @@ export default function Process() {
             <div className={`${s.plateHead} mono mono--micro`}>
               <span>Route</span>
               <span>
-                <b>{String(stage + 1).padStart(2, '0')}</b> / {STAGES.length} nodes
+                <b>{String(stage + 1).padStart(2, '0')}</b> / {STAGES.length} moves
               </span>
             </div>
             <div className={s.diagram}>

@@ -83,7 +83,7 @@ export default function Contact() {
       data-surface="paper"
       ref={root}
     >
-      <Marker index="06" title="Contact" meta="The short version" />
+      <Marker index="09" title="Contact" meta="The short version" />
 
       <div className={s.top}>
         <span className={`${s.avail} mono`}>

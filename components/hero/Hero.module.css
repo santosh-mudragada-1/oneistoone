@@ -1,0 +1,610 @@
+/* ==========================================================================
+   HERO — editorial grid over a full-bleed photograph
+   The image is one continuous layer behind the whole section. The grid sits
+   above it: most cells paint their own solid ink or red and fully occlude
+   the photo; "window" cells paint nothing and let it through. Every cell —
+   solid or window — draws its own hairline via an inset box-shadow, which is
+   what lets the same grid divide both the photo and the type without ever
+   needing the cell underneath it to be opaque.
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background: var(--ink);
+  padding-top: clamp(5.25rem, 12vh, 8rem);
+  padding-bottom: clamp(0.75rem, 1.6vh, 1.25rem);
+}
+
+/* --- Background photograph ------------------------------------------------- */
+
+.bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bgImage {
+  position: absolute;
+  inset: -2%;
+  width: 104%;
+  height: 104%;
+  object-fit: cover;
+  object-position: 50% 32%;
+  transform: scale(1);
+  filter: contrast(1) saturate(1);
+  transition: transform 1s var(--e-quart), filter 0.6s var(--e-quart);
+  will-change: transform;
+}
+
+/* Lifted by the same hover system as every other cell, but keyed off any
+   window cell rather than one of its own — there is no single "image cell"
+   any more for it to belong to. */
+.bgImage[data-lift='true'] {
+  filter: contrast(1.08) saturate(1.06);
+}
+
+.bgScrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 38%, rgba(10, 10, 10, 0.38) 0%, rgba(10, 10, 10, 0.74) 100%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.32) 32%, rgba(10, 10, 10, 0.62) 100%);
+}
+
+/* --- Grid -------------------------------------------------------------- */
+
+.grid {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: clamp(32rem, 90vh, 54rem);
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  grid-template-areas:
+    'headline headline headline lead     lead     wordA'
+    'headline headline headline windowA  windowA  wordD'
+    'wordC    windowB  windowB  windowC  windowD  windowD'
+    'logic    logic    wordB    wordE    windowD  windowD'
+    'windowE  windowE  wordB    cta      cta       cta'
+    'tags     tags     tags     cta      cta       cta';
+  border: 1px solid var(--line);
+}
+
+/* A cell never moves or scales itself on hover — only its inner content
+   does. That keeps the grid geometry fixed while everything inside it
+   answers the pointer. The hairline is a per-cell inset shadow rather than
+   a border or a background-revealed gap: it has to render identically
+   whether the cell beneath it is opaque (ink/red) or fully transparent
+   (a window onto the photo), and box-shadow is the one of the three that
+   doesn't care either way. */
+.cell {
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset -1px -1px 0 0 var(--line);
+  transition: opacity 0.55s var(--e-quart);
+}
+
+.grid[data-hovering='true'] .cell.dimmable {
+  opacity: 0.58;
+}
+
+.grid[data-hovering='true'] .cell.dimmable[data-active='true'] {
+  opacity: 1;
+}
+
+/* --- Window cells -------------------------------------------------------
+   No background of their own — the photo behind the grid is the content.
+   Some carry nothing at all (negative space); the active wash is the only
+   feedback they need, since the real feedback is the photo lifting behind
+   the whole composition. */
+.window {
+  background: transparent;
+  transition: background 0.5s var(--e-quart), opacity 0.55s var(--e-quart);
+}
+
+.window[data-active='true'] {
+  background: rgba(241, 241, 237, 0.05);
+}
+
+.windowA {
+  grid-area: windowA;
+}
+.windowB {
+  grid-area: windowB;
+}
+.windowC {
+  grid-area: windowC;
+}
+.windowD {
+  grid-area: windowD;
+}
+.windowE {
+  grid-area: windowE;
+}
+
+/* ==========================================================================
+   HEADLINE / LEAD / LOGIC — the stable core. Never dimmed by the hover
+   system; the surrounding cells are what should move.
+   ========================================================================== */
+
+.headline {
+  grid-area: headline;
+  background: var(--ink);
+}
+
+.headlineInner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1rem, 2.2vw, 2.1rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.5vw, 3.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--paper);
+}
+
+.line {
+  display: block;
+}
+
+.mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.24em;
+  margin-bottom: -0.24em;
+}
+
+.char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.lead {
+  grid-area: lead;
+  background: var(--ink);
+}
+
+.leadInner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: clamp(0.7rem, 1.4vw, 1.25rem);
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  line-height: 1.4;
+  color: rgba(241, 241, 237, 0.6);
+}
+
+.logic {
+  grid-area: logic;
+  background: var(--red);
+}
+
+.logicInner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: clamp(0.7rem, 1.4vw, 1.15rem);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   CTA — a focal block, not a button. Solid red at rest; the whole cell
+   inverts on hover rather than a pill inside it changing colour.
+   ========================================================================== */
+
+.cta {
+  grid-area: cta;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2.6vw, 2.3rem);
+  background: var(--red);
+  color: var(--ink);
+  transition: background 0.5s var(--e-quart), color 0.5s var(--e-quart);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.ctaLabel {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 3.3vw, 3.5rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  transition: transform 0.55s var(--e-quart);
+}
+
+.cta:hover .ctaLabel,
+.cta:focus-visible .ctaLabel {
+  transform: translateX(0.3em);
+}
+
+.ctaArrowWrap {
+  align-self: flex-end;
+  transition: transform 0.6s var(--e-expo);
+}
+
+.cta:hover .ctaArrowWrap,
+.cta:focus-visible .ctaArrowWrap {
+  transform: translate(0.5em, -0.5em) scale(1.15);
+}
+
+.ctaArrow {
+  display: inline-block;
+  font-style: normal;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1;
+  animation: ctaNudge 3.2s var(--e-cubic) infinite;
+}
+
+@keyframes ctaNudge {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(0.12em, -0.12em);
+  }
+}
+
+/* ==========================================================================
+   WORD CELLS — shared primitives (unchanged behaviour, per feedback: keep
+   this direction)
+   ========================================================================== */
+
+.wordA {
+  grid-area: wordA;
+}
+
+.wordB {
+  grid-area: wordB;
+}
+
+.wordC {
+  grid-area: wordC;
+}
+
+.wordD {
+  grid-area: wordD;
+}
+
+.wordE {
+  grid-area: wordE;
+}
+
+/* Type rides the cell, not each technique's inner wrapper — every mask,
+   track and stage below is layout-only and inherits face, size and colour
+   from here. */
+.word {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(0.72rem, 1vw, 1.05rem);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+/* Colour-invert on hover: ink cells flash red, red cells flash ink. Text
+   swaps with it so contrast never breaks. The scale lands on the mask
+   wrapper, never on a `data-track`/`data-word` node — GSAP writes an inline
+   transform to those every frame, which would silently win over a class. */
+.onInk {
+  background: var(--ink);
+  color: var(--paper);
+  transition: background 0.45s var(--e-quart), color 0.45s var(--e-quart);
+}
+
+.onInk[data-active='true'] {
+  background: var(--red);
+  color: var(--ink);
+}
+
+.onRed {
+  background: var(--red);
+  color: var(--ink);
+  transition: background 0.45s var(--e-quart), color 0.45s var(--e-quart);
+}
+
+.onRed[data-active='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.word[data-active='true'] .stackMask,
+.word[data-active='true'] .rowMask,
+.word[data-active='true'] .stage {
+  transform: scale(1.07);
+}
+
+/* --- Vertical stacks (cycle + continuous marquee) ----------------------- */
+
+.stackMask {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.5s var(--e-quart);
+}
+
+.stack3 {
+  height: 300%;
+}
+
+.stack4 {
+  height: 400%;
+}
+
+.stackItem {
+  height: 33.3334%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(0.4rem, 1vw, 0.85rem);
+}
+
+.stack4 > .stackItem {
+  height: 25%;
+}
+
+/* --- Horizontal ticker ---------------------------------------------------- */
+
+.rowMask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.5s var(--e-quart);
+}
+
+.row4 {
+  display: flex;
+  width: 400%;
+  height: 100%;
+}
+
+.rowItem {
+  width: 25%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding-inline: clamp(0.5rem, 1.4vw, 1.2rem);
+}
+
+/* --- Crossfade + letter reveal: absolutely-stacked word pairs ----------- */
+
+.stage {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.5s var(--e-quart);
+}
+
+.stageWord {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(0.5rem, 1.1vw, 1rem);
+}
+
+.letterMask {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.letter {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   TAGS — the meta chips. A window cell in every sense (transparent, shows
+   the photo) that additionally carries the studio's small print.
+   ========================================================================== */
+
+.tags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: 0.5rem 0.75rem;
+  padding: clamp(0.75rem, 1.6vw, 1.25rem);
+}
+
+.figBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.42em 0.7em;
+  border: 1px solid rgba(241, 241, 237, 0.4);
+  background: rgba(10, 10, 10, 0.36);
+  color: rgba(241, 241, 237, 0.86);
+  font-family: var(--f-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Face/style/tracking come from the global .serif utility applied alongside
+   this class — see globals.css: "Italics come from .serif instead." */
+.tagCaption {
+  font-size: 0.8rem;
+  color: rgba(241, 241, 237, 0.62);
+  white-space: normal;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  flex: none;
+  animation: pulse 2.8s var(--e-cubic) infinite;
+}
+
+.scrollCue i {
+  font-style: normal;
+  animation: nudge 2.6s var(--e-cubic) infinite;
+  display: inline-block;
+}
+
+/* Content hidden per feedback — left in place, not deleted, in case it
+   comes back. The cell stays: still a window, still hairlined, still
+   hoverable. Placed after .tag/.figBlock/.scrollCue so it wins the
+   specificity tie against their own `display` declarations. */
+.tags > * {
+  display: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+  .wordE,
+  .windowD,
+  .windowE {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      'headline headline headline lead'
+      'headline headline headline wordA'
+      'logic    logic    wordB    windowA'
+      'wordC    windowB  wordB    windowA'
+      'windowC  wordD    cta      cta'
+      'tags     tags     cta      cta';
+    min-height: clamp(30rem, 96vh, 50rem);
+  }
+
+  .headlineInner {
+    font-size: clamp(1.85rem, 5vw, 3rem);
+  }
+
+  .ctaLabel {
+    font-size: clamp(1.6rem, 4.4vw, 2.6rem);
+  }
+}
+
+@media (max-width: 780px) {
+  .hero {
+    padding-top: clamp(4.75rem, 13vh, 6.5rem);
+  }
+
+  .wordB,
+  .wordD,
+  .windowA,
+  .windowB,
+  .windowC {
+    display: none;
+  }
+
+  /* Undoes the 1080px rule below, which hides wordE for tablet's own
+     layout — mobile's template wants it back. */
+  .wordE {
+    display: block;
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Auto, not 1fr: in an auto-height container, equal 1fr rows all
+       stretch to match the tallest row's content (the headline), which
+       left the shorter rows — lead, in particular — full of dead space. */
+    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-areas:
+      'tags     tags     tags'
+      'headline headline headline'
+      'lead     lead     lead'
+      'logic    logic    logic'
+      'wordA    wordC    wordE'
+      'cta      cta      cta';
+    min-height: 0;
+    height: auto;
+  }
+
+  .tags {
+    min-height: clamp(6rem, 20vh, 9rem);
+  }
+
+  .headline,
+  .lead,
+  .logic,
+  .cta,
+  .word {
+    min-height: clamp(3.6rem, 11vh, 5rem);
+  }
+
+  .headlineInner {
+    font-size: clamp(2.1rem, 9.2vw, 3.1rem);
+  }
+
+  .leadInner {
+    font-size: var(--t-body);
+  }
+
+  .ctaLabel {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .ctaArrow {
+    font-size: clamp(2.4rem, 10vw, 3.2rem);
+  }
+
+  .word {
+    font-size: clamp(0.68rem, 2.6vw, 0.85rem);
+  }
+}

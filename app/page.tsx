@@ -7,7 +7,7 @@ import Nav from '@/components/Nav';
 import PageFrame from '@/components/PageFrame';
 import Preloader from '@/components/Preloader';
 import SmoothScroll from '@/components/SmoothScroll';
-import Hero from '@/components/hero/HeroReach';
+import Hero from '@/components/hero/Hero';
 import Build from '@/components/sections/Build';
 import Contact from '@/components/sections/Contact';
 import Footer from '@/components/sections/Footer';

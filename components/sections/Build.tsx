@@ -48,11 +48,11 @@ const STAGES = [
   },
 ];
 
-/* The colour, chosen while the word is being refined. It arrives grey,
-   goes through the chromatic stops, and settles on the off-white it keeps —
-   so the last swatch and the section's own ink are the same value and there is
+/* The colour, chosen while the word is being refined. A grey ramp, one value
+   lighter each stop, and settles on the off-white it keeps — so the last
+   swatch and the section's own text colour are the same value and there is
    nothing to reconcile when the picker leaves. */
-const STOPS = ['#6E6E6A', '#1D3FD9', '#0F7A4D', '#FF2A1A', '#C98A2E', '#F1F1ED'];
+const STOPS = ['#4A4A47', '#6B6B68', '#8D8D89', '#AEAEAB', '#D0D0CC', '#F1F1ED'];
 
 /* What the system turns into. Each sits on one of the frame's three rules. */
 const ASSETS: { kind: AssetKind; label: string; x: number; y: number; at: number }[] = [

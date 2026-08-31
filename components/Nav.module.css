@@ -52,23 +52,21 @@
 
 /* --- Mark ---------------------------------------------------------------- */
 
-/* Wordmark: Inter, monochrome, no accent colour of any kind. It takes the
+/* Wordmark: monochrome, no accent colour of any kind. It takes the
    foreground of whichever surface it is sitting on so it stays legible when
-   the page inverts. */
+   the page inverts — the mark's fill is currentColor for exactly that
+   reason. */
 .mark {
-  font-family: var(--f-logo);
-  font-weight: 700;
-  font-size: clamp(1.15rem, 1.5vw, 1.5rem);
-  letter-spacing: -0.03em;
-  line-height: 1;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   color: currentColor;
-  transition: font-size 0.6s var(--e-expo);
 }
 
-.colon {
-  padding-inline: 0.01em;
+.markIcon {
+  display: block;
+  height: clamp(1.15rem, 1.5vw, 1.5rem);
+  width: auto;
+  transition: height 0.6s var(--e-expo);
 }
 
 .markMeta {

@@ -37,7 +37,7 @@
 .trigger {
   position: relative;
   display: grid;
-  grid-template-columns: 3.2rem minmax(0, 1fr);
+  grid-template-columns: 3.2rem minmax(0, 1fr) auto;
   align-items: start;
   gap: clamp(0.75rem, 2vw, 2rem);
   width: 100%;
@@ -153,9 +153,86 @@
   font-weight: 400;
 }
 
+/* --- Mobile accordion ------------------------------------------------------
+   Touch has no hover to reveal the description or run the preview, so the
+   row becomes a real disclosure widget instead: tap opens it, tap the next
+   one closes this one — `active` already only ever holds one index, so the
+   single-open behaviour falls out of reusing the same state hover already
+   used on pointer devices. */
+
+.toggle {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  align-self: center;
+  color: var(--fg-faint);
+  transition: color 0.4s var(--e-quart);
+}
+
+.row[data-active='true'] .toggle {
+  color: var(--red);
+}
+
+.toggle::before,
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.85rem;
+  height: 1.5px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.toggle::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  transition: transform 0.45s var(--e-expo), opacity 0.3s var(--e-quart);
+}
+
+/* The vertical bar lies flat onto the horizontal one and fades — a plus
+   becoming a minus, not one icon swapped for another. */
+.row[data-active='true'] .toggle::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+  opacity: 0;
+}
+
+.expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s var(--e-quart);
+}
+
+.row[data-active='true'] .expand {
+  grid-template-rows: 1fr;
+}
+
+.expandInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mobileDesc {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  padding: 0 0 1rem 2.4rem;
+}
+
+.mobileSketch {
+  aspect-ratio: 16 / 10;
+  margin: 0 0 1.5rem 2.4rem;
+  overflow: hidden;
+  background: var(--ink);
+  border: 1px solid var(--line);
+}
+
 @media (max-width: 780px) {
   .trigger {
-    grid-template-columns: 2.4rem minmax(0, 1fr);
+    grid-template-columns: 2.4rem minmax(0, 1fr) auto;
   }
   .word {
     font-size: clamp(1.25rem, 6.2vw, 2.4rem);

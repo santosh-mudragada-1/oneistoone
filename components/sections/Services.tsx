@@ -107,24 +107,44 @@ export default function Services() {
         data-hot={active !== null}
         onPointerLeave={() => !coarse && setActive(null)}
       >
-        {SERVICES.map((item, i) => (
-          <li
-            className={s.row}
-            key={item.word}
-            data-active={active === i}
-            onPointerEnter={() => !coarse && setActive(i)}
-          >
-            <div className={s.trigger}>
-              <span className={s.idx}>{String(i + 1).padStart(2, '0')}</span>
-              <div className={s.stack}>
-                <span className={s.wordMask}>
-                  <span className={s.word}>{item.word}</span>
-                </span>
-                <span className={s.desc}>{item.desc}</span>
-              </div>
-            </div>
-          </li>
-        ))}
+        {SERVICES.map((item, i) => {
+          const open = active === i;
+          return (
+            <li
+              className={s.row}
+              key={item.word}
+              data-active={open}
+              onPointerEnter={() => !coarse && setActive(i)}
+            >
+              <button
+                type="button"
+                className={s.trigger}
+                onClick={() => coarse && setActive(open ? null : i)}
+                aria-expanded={coarse ? open : undefined}
+              >
+                <span className={s.idx}>{String(i + 1).padStart(2, '0')}</span>
+                <div className={s.stack}>
+                  <span className={s.wordMask}>
+                    <span className={s.word}>{item.word}</span>
+                  </span>
+                  {!coarse ? <span className={s.desc}>{item.desc}</span> : null}
+                </div>
+                {coarse ? <span className={s.toggle} aria-hidden="true" /> : null}
+              </button>
+
+              {coarse ? (
+                <div className={s.expand} aria-hidden={!open}>
+                  <div className={s.expandInner}>
+                    <p className={s.mobileDesc}>{item.desc}</p>
+                    <div className={s.mobileSketch}>
+                      <ServiceSketch mode={i} running={open} />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
 
       {!coarse ? (

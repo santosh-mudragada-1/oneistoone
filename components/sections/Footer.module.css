@@ -117,19 +117,17 @@
 .mark {
   display: flex;
   justify-content: center;
-  font-family: var(--f-logo);
-  font-weight: 700;
-  /* Sized to span the measure and be cropped by the page edge — the mark
-     runs off the bottom of the document rather than sitting inside it. */
-  font-size: min(48vw, 700px);
-  letter-spacing: -0.045em;
-  line-height: 0.74;
   color: var(--white);
   will-change: transform;
 }
 
-.markColon {
-  color: inherit;
+.markIcon {
+  display: block;
+  /* Sized to span the measure and be cropped by the page edge — the mark
+     runs off the bottom of the document rather than sitting inside it. */
+  width: min(58vw, 840px);
+  height: auto;
+  margin-bottom: -12%;
 }
 
 @media (max-width: 860px) {
@@ -141,7 +139,7 @@
   .colD {
     grid-column: span 6;
   }
-  .mark {
-    font-size: 62vw;
+  .markIcon {
+    width: 74vw;
   }
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useReducedMotion } from '@/lib/hooks';
 import { useSmoothScroll } from './SmoothScroll';
+import Logo from './ui/Logo';
 import s from './Nav.module.css';
 
 type NavItem = { id: string; label: string; idx: string; covers: string[] };
@@ -149,7 +150,7 @@ export default function Nav() {
           data-cursor="Top"
           aria-label="1:1 — back to top"
         >
-          1<span className={s.colon}>:</span>1
+          <Logo className={s.markIcon} />
         </a>
         <span className={s.markMeta}>Creative Studio</span>
 

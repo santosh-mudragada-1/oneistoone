@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { useReducedMotion } from '@/lib/hooks';
 import { useSmoothScroll } from './SmoothScroll';
+import Logo from './ui/Logo';
 import s from './Preloader.module.css';
 
 /**
@@ -45,7 +46,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       tl.to(`.${s.cross}`, { scaleX: 1, duration: 1.1, ease: 'expo.inOut' }, 0)
         .to(`.${s.crossV}`, { scaleY: 1, duration: 1.1, ease: 'expo.inOut' }, 0.06)
         .fromTo(
-          `.${s.glyph} > span`,
+          `.${s.markIcon}`,
           { yPercent: 115 },
           { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.09 },
           0.35
@@ -73,7 +74,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
         .to(`.${s.ruleFill}`, { scaleX: 1, duration: 1.7, ease: 'power2.inOut' }, 0.2)
 
         // Hand-off: the mark leaves, the frame collapses, the modules lift.
-        .to(`.${s.glyph} > span`, { yPercent: -115, duration: 0.75, ease: 'expo.in', stagger: 0.05 }, 2.1)
+        .to(`.${s.markIcon}`, { yPercent: -115, duration: 0.75, ease: 'expo.in', stagger: 0.05 }, 2.1)
         .to([`.${s.top}`, `.${s.bottom}`, `.${s.rule}`], { opacity: 0, duration: 0.45 }, 2.15)
         .to(`.${s.cross}`, { scaleX: 0, duration: 0.7, ease: 'expo.inOut' }, 2.3)
         .to(`.${s.crossV}`, { scaleY: 0, duration: 0.7, ease: 'expo.inOut' }, 2.3)
@@ -119,13 +120,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           <span className={s.crossV} />
           <div className={s.mark}>
             <span className={s.glyph}>
-              <span>1</span>
-            </span>
-            <span className={`${s.glyph} ${s.colon}`}>
-              <span>:</span>
-            </span>
-            <span className={s.glyph}>
-              <span>1</span>
+              <Logo className={s.markIcon} />
             </span>
           </div>
         </div>

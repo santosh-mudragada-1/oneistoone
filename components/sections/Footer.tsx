@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { useGsap, useReducedMotion } from '@/lib/hooks';
 import { useSmoothScroll } from '../SmoothScroll';
+import Logo from '../ui/Logo';
 import s from './Footer.module.css';
 
 const MENU = [
@@ -150,9 +151,7 @@ export default function Footer() {
         data-cursor="Top"
       >
         <span className={s.mark} ref={markRef} aria-hidden="true">
-          <i>1</i>
-          <i className={s.markColon}>:</i>
-          <i>1</i>
+          <Logo className={s.markIcon} />
         </span>
       </a>
     </footer>

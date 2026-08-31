@@ -64,12 +64,7 @@
 .mark {
   position: relative;
   display: flex;
-  align-items: baseline;
-  font-family: var(--f-logo);
-  font-weight: 700;
-  font-size: clamp(4rem, 12vw, 11rem);
-  line-height: 0.8;
-  letter-spacing: -0.035em;
+  align-items: center;
   color: var(--white);
   margin-left: 8%;
 }
@@ -79,13 +74,11 @@
   overflow: hidden;
 }
 
-.glyph > span {
+.markIcon {
   display: block;
+  height: clamp(3.2rem, 9.6vw, 8.8rem);
+  width: auto;
   will-change: transform;
-}
-
-.colon {
-  padding-inline: 0.03em;
 }
 
 .bottom {

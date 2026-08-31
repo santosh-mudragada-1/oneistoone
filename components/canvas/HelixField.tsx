@@ -10,11 +10,10 @@ import { useIsCoarse, useSketch } from '@/lib/hooks';
  * frame. It is a single continuous strand — the rules laid across it are what
  * divide it into three parts, not breaks in the thing itself.
  *
- * Each part is drawn in the palette of wherever it was made: ink and grey
- * throughout, and one accent that differs per part. The two parts whose accent
- * is *not* the studio's own **pulse**, each on its own beat, so the strand is
- * visibly out of time with itself. Scrolling brings every accent over to red,
- * one part at a time, and the pulse goes out with the colour it belonged to.
+ * Each part starts in its own shade of grey — none of the three is the
+ * studio's colour yet. All three **pulse**, each on its own beat, so the
+ * strand is visibly out of time with itself. Scrolling brings every part over
+ * to red, one at a time, and the pulse goes out with the grey it belonged to.
  *
  * Everything is a pure function of scroll progress, so scrolling back takes
  * the colours apart again and starts the pulse again. The turn is a separate,
@@ -45,22 +44,24 @@ export const RESOLVED = TURN[2].start + TURN[2].span;
 type RGB = [number, number, number];
 
 const INK: RGB = [10, 10, 10];
-const ACCENT: RGB[] = [
-  [255, 42, 26],
-  [47, 79, 216],
-  [14, 138, 85],
-];
-const RED = ACCENT[0];
+const RED: RGB = [255, 42, 26];
 
-/* Neutral grey, passed through on the way over. Interpolating straight from
-   blue to red runs through violet — a fourth colour that belongs to neither
-   palette. Draining to grey first reads as the old one leaving and the
-   studio's own arriving, which is what is actually happening. */
+/* Three different starting greys — no part begins as the studio's own
+   colour any more. Scrolling brings all three over to red, one at a time. */
+const ACCENT: RGB[] = [
+  [74, 74, 71],
+  [141, 141, 137],
+  [208, 208, 204],
+];
+
+/* Passed through on the way to red — each part settles here at the midpoint
+   of its turn before diverging out to the studio's colour, so the three
+   don't just fade toward red independently, they meet on the way. */
 const NEUTRAL: RGB = [122, 122, 118];
 
-/** Each wrong part keeps its own beat. Nothing here is in time with anything. */
-const BEAT = [0, 1580, 2130];
-const OFFSET = [0, 0, 0.9];
+/** Each part keeps its own beat. Nothing here is in time with anything. */
+const BEAT = [1200, 1580, 2130];
+const OFFSET = [0.35, 0, 0.9];
 
 const TAU = Math.PI * 2;
 const CYCLE = 30000;
@@ -77,12 +78,8 @@ const blend = (a: RGB, b: RGB, k: number): RGB =>
   k < 0.5 ? lerp(a, NEUTRAL, k * 2) : lerp(NEUTRAL, b, (k - 0.5) * 2);
 
 const turnOf = (i: number, p: number) => ease(clamp01((p - TURN[i].start) / TURN[i].span));
-const isRed = (c: RGB) => c[0] === RED[0] && c[1] === RED[1] && c[2] === RED[2];
 
-/* A part whose accent is already the studio's own never changes and never
-   drains — putting it through the neutral would say it was wrong. */
-const toneOf = (i: number, p: number): RGB =>
-  isRed(ACCENT[i]) ? RED : blend(ACCENT[i], RED, turnOf(i, p));
+const toneOf = (i: number, p: number): RGB => blend(ACCENT[i], RED, turnOf(i, p));
 
 /** The colour of one part at a given scroll position, as a hex string. */
 export function partHex(i: number, p: number) {
@@ -129,12 +126,10 @@ export default function HelixField({
       // How far each part has come to the one colour.
       const k = [turnOf(0, p), turnOf(1, p), turnOf(2, p)];
       const tone = ACCENT.map((_, i) => toneOf(i, p));
-      /* The first length was already the studio's own colour, so it never
-         pulses: red is what settled looks like. */
+      /* All three pulse until their own turn resolves — none of them starts
+         already red, so none of them starts settled either. */
       const beat = k.map((kk, i) =>
-        isRed(ACCENT[i]) || reduced
-          ? 0
-          : (1 - kk) * (0.5 + 0.5 * Math.sin((t / BEAT[i]) * TAU + OFFSET[i]))
+        reduced ? 0 : (1 - kk) * (0.5 + 0.5 * Math.sin((t / BEAT[i]) * TAU + OFFSET[i]))
       );
       const focus = (i: number) => (hot === null ? 1 : hot === i ? 1 : 0.24);
 

@@ -198,8 +198,10 @@ export default function Nav() {
               <span className="mask">
                 <span className={s.bigWord}>{item.label}</span>
               </span>
+              {/* U+FE0E forces the text-style glyph — without it iOS renders
+                  this diagonal arrow with its emoji presentation. */}
               <span className={s.bigArrow} aria-hidden="true">
-                ↗
+                ↗︎
               </span>
             </a>
           ))}

@@ -105,10 +105,7 @@ export default function Footer() {
         <div className={s.colB}>
           <span className={s.colHead}>Social</span>
           <div className={s.list}>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer">
-              Instagram
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+            <a href="https://www.linkedin.com/company/oneistoone/" target="_blank" rel="noreferrer">
               LinkedIn
             </a>
           </div>
@@ -117,7 +114,7 @@ export default function Footer() {
         <div className={s.colC}>
           <span className={s.colHead}>Contact</span>
           <div className={s.list}>
-            <a href="mailto:hello@1-1.studio">hello@1-1.studio</a>
+            <a href="mailto:info@oneisto.one">info@oneisto.one</a>
           </div>
         </div>
 

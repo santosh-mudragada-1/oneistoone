@@ -6,7 +6,7 @@ import { useGsap, useMagnetic, useReducedMotion } from '@/lib/hooks';
 import Marker from '../ui/Marker';
 import s from './Contact.module.css';
 
-const EMAIL = 'hello@1-1.studio';
+const EMAIL = 'info@oneisto.one';
 
 export default function Contact() {
   const root = useRef<HTMLElement>(null);
@@ -138,10 +138,7 @@ export default function Contact() {
         </div>
 
         <div className={`${s.socials} mono`}>
-          <a href="https://instagram.com" target="_blank" rel="noreferrer">
-            Instagram
-          </a>
-          <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+          <a href="https://www.linkedin.com/company/oneistoone/" target="_blank" rel="noreferrer">
             LinkedIn
           </a>
         </div>

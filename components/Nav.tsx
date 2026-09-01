@@ -209,14 +209,16 @@ export default function Nav() {
         </div>
 
         <div className={`${s.overlayFoot} mono`}>
-          <a href="mailto:hello@1-1.studio" tabIndex={open ? 0 : -1}>
-            hello@1-1.studio
+          <a href="mailto:info@oneisto.one" tabIndex={open ? 0 : -1}>
+            info@oneisto.one
           </a>
           <div className={s.socials}>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" tabIndex={open ? 0 : -1}>
-              Instagram
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" tabIndex={open ? 0 : -1}>
+            <a
+              href="https://www.linkedin.com/company/oneistoone/"
+              target="_blank"
+              rel="noreferrer"
+              tabIndex={open ? 0 : -1}
+            >
               LinkedIn
             </a>
           </div>

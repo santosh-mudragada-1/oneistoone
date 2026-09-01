@@ -43,7 +43,10 @@ export const RESOLVED = TURN[2].start + TURN[2].span;
 
 type RGB = [number, number, number];
 
-const INK: RGB = [10, 10, 10];
+/* The strand's structural colour — rungs and the far side of the backbone
+   and bases. Paper, not ink: the section sits on a black surface, so the
+   receding side of the helix has to be the light value to read against it. */
+const STRUCTURE: RGB = [241, 241, 237];
 const RED: RGB = [255, 42, 26];
 
 /* Three different starting greys — no part begins as the studio's own
@@ -163,7 +166,7 @@ export default function HelixField({
           const z = (a.z + b.z) / 2;
           const n = near(z);
           const alpha = (0.2 + n * 0.62) * f * (si === 0 ? lift : 1);
-          const col = si === 0 ? rgba(c, Math.min(1, alpha)) : rgba(INK, alpha * 0.7);
+          const col = si === 0 ? rgba(c, Math.min(1, alpha)) : rgba(STRUCTURE, alpha * 0.7);
           const lw = (1.6 + n * 2.6) * (si === 0 ? lift : 1);
           items.push({
             z,
@@ -189,7 +192,7 @@ export default function HelixField({
         items.push({
           z: 0,
           draw: () => {
-            ctx.strokeStyle = rgba(INK, alpha);
+            ctx.strokeStyle = rgba(STRUCTURE, alpha);
             ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -213,7 +216,7 @@ export default function HelixField({
           const n = near(q.z);
           const rr = r0 * (0.52 + n * 0.66) * (si === 0 ? lift : 1);
           const alpha = Math.min(1, (0.34 + n * 0.66) * f * (si === 0 ? lift : 1));
-          const col = si === 0 ? rgba(c, alpha) : rgba(INK, alpha * 0.78);
+          const col = si === 0 ? rgba(c, alpha) : rgba(STRUCTURE, alpha * 0.78);
           items.push({
             z: q.z,
             draw: () => {

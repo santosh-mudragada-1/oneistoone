@@ -182,19 +182,21 @@
   padding-top: clamp(1.5rem, 4vh, 3rem);
 }
 
+/* Same grey-to-red story as the animated strand: three starting shades,
+   shown static here since reduced motion never gets to watch them resolve. */
 .staticList li {
   display: grid;
   gap: 0.35rem;
-  border-left: 2px solid var(--red);
+  border-left: 2px solid #4a4a47;
   padding-left: 1rem;
 }
 
 .staticList li[data-part='1'] {
-  border-left-color: #2f4fd8;
+  border-left-color: #8d8d89;
 }
 
 .staticList li[data-part='2'] {
-  border-left-color: #0e8a55;
+  border-left-color: #d0d0cc;
 }
 
 .staticSplit {

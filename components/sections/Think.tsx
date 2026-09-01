@@ -140,7 +140,7 @@ export default function Think() {
       className={`section ${s.section}`}
       id="think"
       data-section="think"
-      data-surface="paper"
+      data-surface="ink"
       ref={root}
     >
       <Marker index="03" title="The Way We Think" meta="One strand, three places" />
